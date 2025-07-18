@@ -113,10 +113,10 @@ export class FlomoImporter {
         const files = await decompress(this.config["rawDir"], tmpDir)
 
         // 3. copy attachments to ObVault
-        // 直接使用 flomo/ 作为附件目录，与图片引用路径匹配
-        let attachementDir = "flomo/";
+        // 直接使用 10 flomo/flomo picture/ 作为附件目录，与图片引用路径匹配
+        let attachementDir = "10 flomo/flomo picture/";
         
-        // 不使用 Obsidian 的附件文件夹设置，因为图片引用是硬编码的 flomo/ 路径
+        // 不使用 Obsidian 的附件文件夹设置，因为图片引用是硬编码的路径
         console.debug(`使用固定附件目录: ${attachementDir}`);
 
         for (const f of files) {

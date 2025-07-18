@@ -63,7 +63,7 @@ export class FlomoCore {
             return td.turndown(content).replace(/\\\[/g, '[')
                                        .replace(/\\\]/g, ']')
                                         //replace(/\\#/g, '#')
-                                       .replace(/!\[\]\(file\//gi, "\n![](flomo/")
+                                       .replace(/!\[\]\(file\//gi, "\n![](10 flomo/flomo picture/")
                                         //.replace(/\<\!--\s--\>/g, '')
                                         //.replace(/^\s*[\r\n]/gm,'')
                                         //.replace(/!\[null\]\(<file\//gi, "\n![](<flomo/");

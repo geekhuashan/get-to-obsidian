@@ -84541,7 +84541,7 @@ var FlomoCore = class {
         }
       };
       td.addRule("listItem", liRule);
-      return td.turndown(content).replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/!\[\]\(file\//gi, "\n![](flomo/");
+      return td.turndown(content).replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/!\[\]\(file\//gi, "\n![](10 flomo/flomo picture/");
     };
     const timeOccurrences = {};
     let totalMemoCount = 0;
@@ -84789,7 +84789,7 @@ var FlomoImporter = class {
     const tmpDir = path2.join(FLOMO_CACHE_LOC, "data");
     await fs2.mkdirp(tmpDir);
     const files = await (0, import_decompress.default)(this.config["rawDir"], tmpDir);
-    let attachementDir = "flomo/";
+    let attachementDir = "10 flomo/flomo picture/";
     console.debug(`\u4F7F\u7528\u56FA\u5B9A\u9644\u4EF6\u76EE\u5F55: ${attachementDir}`);
     for (const f of files) {
       if (f.type == "directory" && f.path.endsWith("/file/")) {
