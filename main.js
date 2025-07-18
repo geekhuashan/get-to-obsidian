@@ -84541,7 +84541,7 @@ var FlomoCore = class {
         }
       };
       td.addRule("listItem", liRule);
-      return td.turndown(content).replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/!\[\]\(file\//gi, "\n![](10 flomo/flomo picture/");
+      return td.turndown(content).replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/!\[\]\(file\/([^)]+)\)/gi, "![](<10 flomo/flomo picture/$1>)");
     };
     const timeOccurrences = {};
     let totalMemoCount = 0;
@@ -84573,8 +84573,14 @@ var FlomoCore = class {
       }
       const memoId = `${dateTime}_${Math.abs(contentHash)}_${occurrenceCount}_${totalMemoCount}`;
       console.debug(`\u5907\u5FD8\u5F55 #${totalMemoCount}: \u65F6\u95F4=${dateTime}, \u54C8\u5E0C=${Math.abs(contentHash)}, \u540C\u65F6\u95F4\u7B2C${occurrenceCount}\u6761, ID=${memoId}`);
-      if (this.syncedMemoIds.includes(memoId)) {
-        console.debug(`\u5907\u5FD8\u5F55\u5DF2\u5B58\u5728\uFF0C\u8DF3\u8FC7: ${memoId}`);
+      const isAlreadySynced = this.syncedMemoIds.some((syncedId) => {
+        if (syncedId === memoId)
+          return true;
+        const syncedDateTime = syncedId.split("_")[0];
+        return syncedDateTime === dateTime;
+      });
+      if (isAlreadySynced) {
+        console.debug(`\u5907\u5FD8\u5F55\u5DF2\u5B58\u5728\uFF08\u517C\u5BB9\u68C0\u67E5\uFF09\uFF0C\u8DF3\u8FC7: ${dateTime}`);
         return;
       }
       this.newMemosCount++;

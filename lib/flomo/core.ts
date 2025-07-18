@@ -63,7 +63,7 @@ export class FlomoCore {
             return td.turndown(content).replace(/\\\[/g, '[')
                                        .replace(/\\\]/g, ']')
                                         //replace(/\\#/g, '#')
-                                       .replace(/!\[\]\(file\//gi, "\n![](10 flomo/flomo picture/")
+                                       .replace(/!\[\]\(file\/([^)]+)\)/gi, "![](<10 flomo/flomo picture/$1>)")
                                         //.replace(/\<\!--\s--\>/g, '')
                                         //.replace(/^\s*[\r\n]/gm,'')
                                         //.replace(/!\[null\]\(<file\//gi, "\n![](<flomo/");
@@ -125,9 +125,19 @@ export class FlomoCore {
             console.debug(`备忘录 #${totalMemoCount}: 时间=${dateTime}, 哈希=${Math.abs(contentHash)}, 同时间第${occurrenceCount}条, ID=${memoId}`);
             
             // 检查这个备忘录是否已经同步过
-            if (this.syncedMemoIds.includes(memoId)) {
+            // 兼容旧的ID格式：检查是否有以相同日期时间开头的ID
+            const isAlreadySynced = this.syncedMemoIds.some(syncedId => {
+                // 完全匹配（新格式）
+                if (syncedId === memoId) return true;
+                
+                // 兼容旧格式：检查日期时间部分是否匹配
+                const syncedDateTime = syncedId.split('_')[0];
+                return syncedDateTime === dateTime;
+            });
+            
+            if (isAlreadySynced) {
                 // 已同步的备忘录，跳过
-                console.debug(`备忘录已存在，跳过: ${memoId}`);
+                console.debug(`备忘录已存在（兼容检查），跳过: ${dateTime}`);
                 return;
             }
             
