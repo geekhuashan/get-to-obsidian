@@ -84898,21 +84898,130 @@ var FlomoImporter = class {
 // lib/flomo/exporter.ts
 var FlomoExporter = class {
   async export() {
+    let browser = null;
     try {
-      const browser = await chromium.launch();
+      browser = await chromium.launch({ headless: false });
       const context = await browser.newContext({ storageState: AUTH_FILE });
       const page = await context.newPage();
+      console.log("\u6B63\u5728\u8BBF\u95EE Flomo \u5BFC\u51FA\u9875\u9762...");
+      await page.goto("https://v.flomoapp.com/mine?source=export", { waitUntil: "networkidle" });
+      await page.waitForLoadState("load");
+      await page.waitForTimeout(2e3);
+      console.log("\u9875\u9762\u5DF2\u52A0\u8F7D\u5B8C\u6210");
+      try {
+        const screenshotPath = DOWNLOAD_FILE.replace("flomo_export.zip", "page_screenshot.png");
+        await page.screenshot({ path: screenshotPath, fullPage: true });
+        console.log(`\u9875\u9762\u622A\u56FE\u5DF2\u4FDD\u5B58\u5230: ${screenshotPath}`);
+      } catch (e) {
+        console.log("\u4FDD\u5B58\u622A\u56FE\u5931\u8D25:", e.message);
+      }
+      console.log("\u7B49\u5F85\u5BFC\u51FA\u5F39\u7A97\u663E\u793A...");
+      const exportDialog = page.locator("text=\u5BFC\u51FA\u7B14\u8BB0").first();
+      await exportDialog.waitFor({ state: "visible", timeout: 1e4 });
+      console.log("\u5BFC\u51FA\u5F39\u7A97\u5DF2\u663E\u793A");
+      console.log("\u67E5\u627E\u5BFC\u51FA\u6309\u94AE...");
+      const debugInfo = await page.evaluate(() => {
+        const allElements = Array.from(document.querySelectorAll("*"));
+        const exportElements = allElements.filter((el) => {
+          var _a2;
+          const text = ((_a2 = el.textContent) == null ? void 0 : _a2.trim()) || "";
+          const htmlEl = el;
+          return text === "\u5BFC\u51FA" && htmlEl.offsetWidth > 0 && htmlEl.offsetHeight > 0;
+        });
+        return exportElements.map((el) => {
+          var _a2, _b;
+          const htmlEl = el;
+          return {
+            tagName: el.tagName,
+            className: el.className,
+            id: el.id,
+            parentTag: (_a2 = el.parentElement) == null ? void 0 : _a2.tagName,
+            parentClass: (_b = el.parentElement) == null ? void 0 : _b.className,
+            rect: el.getBoundingClientRect()
+          };
+        });
+      });
+      console.log('\u9875\u9762\u4E0A\u6240\u6709"\u5BFC\u51FA"\u5143\u7D20:', JSON.stringify(debugInfo, null, 2));
+      const htmlStructure = await page.evaluate(() => {
+        const allElements = Array.from(document.querySelectorAll("*"));
+        const targetElement = allElements.find((el) => {
+          var _a2;
+          const text = ((_a2 = el.textContent) == null ? void 0 : _a2.trim()) || "";
+          return text.includes("\u5BFC\u51FA\u5168\u90E8\u7B14\u8BB0");
+        });
+        if (!targetElement)
+          return "Not found";
+        const container = targetElement.closest("div") || targetElement.parentElement;
+        return (container == null ? void 0 : container.outerHTML) || "No container";
+      });
+      console.log("=== \u5BFC\u51FA\u5168\u90E8\u7B14\u8BB0 \u533A\u57DF\u7684 HTML ===");
+      console.log(htmlStructure);
+      console.log("=== HTML \u7ED3\u675F ===");
+      let exportButton = null;
+      let foundMethod = "";
+      try {
+        exportButton = page.locator("button.el-button.el-button--text").filter({ hasText: /^[\s]*导出[\s]*$/ }).first();
+        await exportButton.waitFor({ state: "visible", timeout: 5e3 });
+        foundMethod = "\u65B9\u5F0F1: Element UI \u6309\u94AE";
+        console.log("\u627E\u5230\u5BFC\u51FA\u6309\u94AE (\u65B9\u5F0F1: Element UI \u6309\u94AE)");
+      } catch (e) {
+        console.log("\u65B9\u5F0F1\u5931\u8D25,\u5C1D\u8BD5\u65B9\u5F0F2");
+      }
+      if (!exportButton) {
+        try {
+          const container = page.locator("text=\u5BFC\u51FA\u5168\u90E8\u7B14\u8BB0").locator("..");
+          exportButton = container.locator("button").filter({ hasText: /^[\s]*导出[\s]*$/ }).first();
+          await exportButton.waitFor({ state: "visible", timeout: 5e3 });
+          foundMethod = "\u65B9\u5F0F2: \u5BB9\u5668\u5185\u6309\u94AE";
+          console.log("\u627E\u5230\u5BFC\u51FA\u6309\u94AE (\u65B9\u5F0F2: \u5728\u5BB9\u5668\u4E2D\u67E5\u627E)");
+        } catch (e) {
+          console.log("\u65B9\u5F0F2\u5931\u8D25,\u5C1D\u8BD5\u65B9\u5F0F3");
+        }
+      }
+      if (!exportButton) {
+        try {
+          exportButton = page.locator('button:has-text("\u5BFC\u51FA"), a:has-text("\u5BFC\u51FA"), [role="button"]:has-text("\u5BFC\u51FA")').filter({ hasText: /^[\s]*导出[\s]*$/ }).first();
+          await exportButton.waitFor({ state: "visible", timeout: 5e3 });
+          foundMethod = "\u65B9\u5F0F3: \u901A\u7528\u6309\u94AE\u67E5\u627E";
+          console.log("\u627E\u5230\u5BFC\u51FA\u6309\u94AE (\u65B9\u5F0F3: \u76F4\u63A5\u67E5\u627E\u53EF\u70B9\u51FB\u5143\u7D20)");
+        } catch (e) {
+          console.log("\u65B9\u5F0F3\u5931\u8D25");
+        }
+      }
+      if (!exportButton) {
+        throw new Error("\u65E0\u6CD5\u627E\u5230\u5BFC\u51FA\u6309\u94AE");
+      }
+      console.log(`\u6210\u529F\u627E\u5230\u5BFC\u51FA\u6309\u94AE (${foundMethod})`);
+      await exportButton.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(500);
       const downloadPromise = page.waitForEvent("download", { timeout: 10 * 60 * 1e3 });
-      await page.goto("https://v.flomoapp.com/mine?source=export");
-      await page.getByRole("button", { name: "\u5F00\u59CB\u5BFC\u51FA" }).click();
+      console.log("\u70B9\u51FB\u5BFC\u51FA\u6309\u94AE...");
+      await exportButton.click({ timeout: 5e3 });
+      console.log("\u5DF2\u89E6\u53D1\u70B9\u51FB");
+      await page.waitForTimeout(1e3);
+      console.log("\u70B9\u51FB\u540E\u7B49\u5F851\u79D2");
+      const hasProgress = await page.locator("text=\u5BFC\u51FA\u4E2D, text=\u6B63\u5728\u5BFC\u51FA, text=\u751F\u6210\u4E2D").count();
+      if (hasProgress > 0) {
+        console.log("\u68C0\u6D4B\u5230\u5BFC\u51FA\u8FDB\u5EA6\u63D0\u793A");
+      }
+      console.log("\u7B49\u5F85\u4E0B\u8F7D\u5F00\u59CB...");
       const download = await downloadPromise;
+      console.log("\u4E0B\u8F7D\u5DF2\u89E6\u53D1,\u6B63\u5728\u4FDD\u5B58\u6587\u4EF6...");
       await download.saveAs(DOWNLOAD_FILE);
+      console.log(`\u6587\u4EF6\u5DF2\u4FDD\u5B58\u5230: ${DOWNLOAD_FILE}`);
       await context.close();
       await browser.close();
       return [true, ""];
     } catch (error) {
-      console.log(error);
-      return [false, error];
+      console.error("\u5BFC\u51FA\u8FC7\u7A0B\u51FA\u9519:", error);
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (e) {
+          console.error("\u5173\u95ED\u6D4F\u89C8\u5668\u5931\u8D25:", e);
+        }
+      }
+      return [false, `\u5BFC\u51FA\u5931\u8D25: ${error.message || error}`];
     }
   }
 };
