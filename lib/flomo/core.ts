@@ -9,11 +9,13 @@ export class FlomoCore {
     files: Record<string, string[]>;
     syncedMemoIds: string[] = []; // 已同步的备忘录IDs
     newMemosCount: number = 0;   // 新增备忘录数量
+    flomoTarget: string; // Flomo 主目录路径
 
-    constructor(flomoData: string, syncedMemoIds: string[] = []) {
+    constructor(flomoData: string, syncedMemoIds: string[] = [], flomoTarget: string = 'flomo') {
         //const root = parse(DOMPurify.sanitize(flomoData));
         const root = parse(flomoData);
         this.syncedMemoIds = [...syncedMemoIds]; // 复制已同步的备忘录IDs
+        this.flomoTarget = flomoTarget;
         this.memos = this.loadMemos(root.querySelectorAll(".memo"));
         this.tags = this.loadTags(root.getElementById("tag").querySelectorAll("option"));
         this.files = {};
@@ -23,6 +25,8 @@ export class FlomoCore {
 
         const res: Record<string, string>[] = [];
         const extrtactTitle = (item: string) => { return item.replace(/(-|:|\s)/gi, "_") }
+
+        // 使用箭头函数以便访问 this.flomoTarget
         const extractContent = (content: string) => {
             //return NodeHtmlMarkdown.translate(content, {bulletMarker: '-',}).replace('\[', '[').replace('\]', ']')
             //return NodeHtmlMarkdown.translate(content, {bulletMarker: '-',}).replace('\[', '[').replace('\]', ']')
@@ -60,10 +64,16 @@ export class FlomoCore {
               
             td.addRule('listItem', liRule);
 
+            // 使用动态的 flomoTarget 路径，附件目录改为 flomo attachment（包含图片、录音等所有附件）
+            // Flomo 原始路径: file/2025-11-03/4852/xxx.m4a
+            // 简化后路径: flomoTarget/flomo attachment/2025-11-03/xxx.m4a (跳过 file/ 和用户ID)
+            const attachmentPath = `${this.flomoTarget}/flomo attachment/`;
             return td.turndown(content).replace(/\\\[/g, '[')
                                        .replace(/\\\]/g, ']')
                                         //replace(/\\#/g, '#')
-                                       .replace(/!\[\]\(file\/([^)]+)\)/gi, "![](<10 flomo/flomo picture/$1>)")
+                                       // 匹配 file/日期/用户ID/文件名，替换为 附件路径/日期/文件名
+                                       // 支持方括号内有文字的情况：![xxx](file/...) 或 ![](file/...)
+                                       .replace(/!\[([^\]]*)\]\(file\/([^\/]+)\/[^\/]+\/([^)]+)\)/gi, `![$1](<${attachmentPath}$2/$3>)`)
                                         //.replace(/\<\!--\s--\>/g, '')
                                         //.replace(/^\s*[\r\n]/gm,'')
                                         //.replace(/!\[null\]\(<file\//gi, "\n![](<flomo/");
@@ -125,20 +135,41 @@ export class FlomoCore {
             console.debug(`备忘录 #${totalMemoCount}: 时间=${dateTime}, 哈希=${Math.abs(contentHash)}, 同时间第${occurrenceCount}条, ID=${memoId}`);
             
             // 检查这个备忘录是否已经同步过
-            // 兼容旧的ID格式：检查是否有以相同日期时间开头的ID
+            // 支持内容更新检测：只有时间戳和内容哈希都匹配才认为是已同步
             const isAlreadySynced = this.syncedMemoIds.some(syncedId => {
                 // 完全匹配（新格式）
                 if (syncedId === memoId) return true;
-                
-                // 兼容旧格式：检查日期时间部分是否匹配
-                const syncedDateTime = syncedId.split('_')[0];
-                return syncedDateTime === dateTime;
+
+                // 兼容旧格式：检查日期时间和内容哈希是否都匹配
+                const parts = syncedId.split('_');
+                if (parts.length >= 2) {
+                    const syncedDateTime = parts[0];
+                    const syncedHash = parts[1];
+                    // 只有时间戳和哈希都匹配才认为是同一条备忘录
+                    return syncedDateTime === dateTime && syncedHash === Math.abs(contentHash).toString();
+                }
+
+                // 非常旧的格式（只有时间戳）：只检查时间戳
+                return syncedId === dateTime;
             });
-            
+
             if (isAlreadySynced) {
                 // 已同步的备忘录，跳过
-                console.debug(`备忘录已存在（兼容检查），跳过: ${dateTime}`);
+                console.debug(`备忘录已存在，跳过: ${dateTime} (hash: ${Math.abs(contentHash)})`);
                 return;
+            } else {
+                // 检查是否是内容更新（同一时间戳，不同哈希）
+                const existingMemoIndex = this.syncedMemoIds.findIndex(syncedId => {
+                    const parts = syncedId.split('_');
+                    return parts.length >= 2 && parts[0] === dateTime;
+                });
+
+                if (existingMemoIndex >= 0) {
+                    // 发现内容更新，删除旧的ID记录
+                    const oldId = this.syncedMemoIds[existingMemoIndex];
+                    console.debug(`发现内容更新: ${dateTime}, 旧哈希=${oldId.split('_')[1]}, 新哈希=${Math.abs(contentHash)}`);
+                    this.syncedMemoIds.splice(existingMemoIndex, 1);
+                }
             }
             
             // 这是一个新备忘录，增加计数

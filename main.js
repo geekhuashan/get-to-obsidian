@@ -84507,14 +84507,16 @@ var turndown_browser_es_default = TurndownService;
 
 // lib/flomo/core.ts
 var FlomoCore = class {
-  constructor(flomoData, syncedMemoIds = []) {
+  constructor(flomoData, syncedMemoIds = [], flomoTarget = "flomo") {
     __publicField(this, "memos");
     __publicField(this, "tags");
     __publicField(this, "files");
     __publicField(this, "syncedMemoIds", []);
     __publicField(this, "newMemosCount", 0);
+    __publicField(this, "flomoTarget");
     const root2 = (0, import_node_html_parser.parse)(flomoData);
     this.syncedMemoIds = [...syncedMemoIds];
+    this.flomoTarget = flomoTarget;
     this.memos = this.loadMemos(root2.querySelectorAll(".memo"));
     this.tags = this.loadTags(root2.getElementById("tag").querySelectorAll("option"));
     this.files = {};
@@ -84541,7 +84543,8 @@ var FlomoCore = class {
         }
       };
       td.addRule("listItem", liRule);
-      return td.turndown(content).replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/!\[\]\(file\/([^)]+)\)/gi, "![](<10 flomo/flomo picture/$1>)");
+      const attachmentPath = `${this.flomoTarget}/flomo attachment/`;
+      return td.turndown(content).replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/!\[([^\]]*)\]\(file\/([^\/]+)\/[^\/]+\/([^)]+)\)/gi, `![$1](<${attachmentPath}$2/$3>)`);
     };
     const timeOccurrences = {};
     let totalMemoCount = 0;
@@ -84576,12 +84579,27 @@ var FlomoCore = class {
       const isAlreadySynced = this.syncedMemoIds.some((syncedId) => {
         if (syncedId === memoId)
           return true;
-        const syncedDateTime = syncedId.split("_")[0];
-        return syncedDateTime === dateTime;
+        const parts = syncedId.split("_");
+        if (parts.length >= 2) {
+          const syncedDateTime = parts[0];
+          const syncedHash = parts[1];
+          return syncedDateTime === dateTime && syncedHash === Math.abs(contentHash).toString();
+        }
+        return syncedId === dateTime;
       });
       if (isAlreadySynced) {
-        console.debug(`\u5907\u5FD8\u5F55\u5DF2\u5B58\u5728\uFF08\u517C\u5BB9\u68C0\u67E5\uFF09\uFF0C\u8DF3\u8FC7: ${dateTime}`);
+        console.debug(`\u5907\u5FD8\u5F55\u5DF2\u5B58\u5728\uFF0C\u8DF3\u8FC7: ${dateTime} (hash: ${Math.abs(contentHash)})`);
         return;
+      } else {
+        const existingMemoIndex = this.syncedMemoIds.findIndex((syncedId) => {
+          const parts = syncedId.split("_");
+          return parts.length >= 2 && parts[0] === dateTime;
+        });
+        if (existingMemoIndex >= 0) {
+          const oldId = this.syncedMemoIds[existingMemoIndex];
+          console.debug(`\u53D1\u73B0\u5185\u5BB9\u66F4\u65B0: ${dateTime}, \u65E7\u54C8\u5E0C=${oldId.split("_")[1]}, \u65B0\u54C8\u5E0C=${Math.abs(contentHash)}`);
+          this.syncedMemoIds.splice(existingMemoIndex, 1);
+        }
       }
       this.newMemosCount++;
       console.debug(`\u53D1\u73B0\u65B0\u5907\u5FD8\u5F55 #${this.newMemosCount}: ${memoId}`);
@@ -84767,17 +84785,28 @@ var FlomoImporter = class {
     }
     return flomo;
   }
-  async copyAttachmentsRecursively(sourceDir, targetDir) {
+  async copyAttachmentsRecursively(sourceDir, targetDir, skipLevels = 0) {
     try {
       const items = await fs2.readdir(sourceDir, { withFileTypes: true });
       for (const item of items) {
         const sourcePath = `${sourceDir}/${item.name}`;
-        const targetPath = `${targetDir}${item.name}`;
         if (item.isDirectory()) {
-          console.debug(`\u521B\u5EFA\u76EE\u5F55: ${targetPath}/`);
-          await this.app.vault.adapter.mkdir(`${targetPath}/`);
-          await this.copyAttachmentsRecursively(sourcePath, `${targetPath}/`);
+          if (skipLevels > 0) {
+            console.debug(`\u8DF3\u8FC7\u76EE\u5F55\u5C42\u7EA7: ${sourcePath}`);
+            await this.copyAttachmentsRecursively(sourcePath, targetDir, skipLevels - 1);
+          } else {
+            const hasFiles = await this.directoryHasFiles(sourcePath);
+            if (hasFiles) {
+              const targetPath = `${targetDir}${item.name}`;
+              console.debug(`\u521B\u5EFA\u76EE\u5F55: ${targetPath}/`);
+              await this.app.vault.adapter.mkdir(`${targetPath}/`);
+              await this.copyAttachmentsRecursively(sourcePath, `${targetPath}/`, 0);
+            } else {
+              console.debug(`\u8DF3\u8FC7\u7A7A\u76EE\u5F55: ${sourcePath}`);
+            }
+          }
         } else if (item.isFile()) {
+          const targetPath = `${targetDir}${item.name}`;
           try {
             const content = await fs2.readFile(sourcePath);
             await this.app.vault.adapter.writeBinary(targetPath, content);
@@ -84791,19 +84820,79 @@ var FlomoImporter = class {
       console.warn(`\u8BFB\u53D6\u76EE\u5F55\u5931\u8D25: ${sourceDir}`, error);
     }
   }
+  async directoryHasFiles(dirPath) {
+    try {
+      const items = await fs2.readdir(dirPath, { withFileTypes: true });
+      for (const item of items) {
+        if (item.isFile()) {
+          return true;
+        } else if (item.isDirectory()) {
+          const subDirPath = `${dirPath}/${item.name}`;
+          if (await this.directoryHasFiles(subDirPath)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    } catch (error) {
+      console.warn(`\u68C0\u67E5\u76EE\u5F55\u5931\u8D25: ${dirPath}`, error);
+      return false;
+    }
+  }
+  async copyAttachmentsSkipUserIdDir(sourceDir, targetDir) {
+    try {
+      const dateItems = await fs2.readdir(sourceDir, { withFileTypes: true });
+      for (const dateItem of dateItems) {
+        if (!dateItem.isDirectory())
+          continue;
+        const dateDirPath = `${sourceDir}/${dateItem.name}`;
+        const targetDateDir = `${targetDir}${dateItem.name}/`;
+        const hasFiles = await this.directoryHasFiles(dateDirPath);
+        if (!hasFiles) {
+          console.debug(`\u8DF3\u8FC7\u7A7A\u65E5\u671F\u76EE\u5F55: ${dateDirPath}`);
+          continue;
+        }
+        await this.app.vault.adapter.mkdir(targetDateDir);
+        console.debug(`\u521B\u5EFA\u65E5\u671F\u76EE\u5F55: ${targetDateDir}`);
+        const userIdItems = await fs2.readdir(dateDirPath, { withFileTypes: true });
+        for (const userIdItem of userIdItems) {
+          if (!userIdItem.isDirectory())
+            continue;
+          const userIdDirPath = `${dateDirPath}/${userIdItem.name}`;
+          const fileItems = await fs2.readdir(userIdDirPath, { withFileTypes: true });
+          for (const fileItem of fileItems) {
+            if (!fileItem.isFile())
+              continue;
+            const sourceFilePath = `${userIdDirPath}/${fileItem.name}`;
+            const targetFilePath = `${targetDateDir}${fileItem.name}`;
+            try {
+              const content = await fs2.readFile(sourceFilePath);
+              await this.app.vault.adapter.writeBinary(targetFilePath, content);
+              console.debug(`\u590D\u5236\u9644\u4EF6: ${sourceFilePath} -> ${targetFilePath}`);
+            } catch (copyError) {
+              console.warn(`\u590D\u5236\u9644\u4EF6\u5931\u8D25: ${sourceFilePath}`, copyError);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`\u590D\u5236\u9644\u4EF6\u76EE\u5F55\u5931\u8D25: ${sourceDir}`, error);
+    }
+  }
   async import() {
     const tmpDir = path2.join(FLOMO_CACHE_LOC, "data");
     await fs2.mkdirp(tmpDir);
     const files = await (0, import_decompress.default)(this.config["rawDir"], tmpDir);
-    let attachementDir = "10 flomo/flomo picture/";
-    console.debug(`\u4F7F\u7528\u56FA\u5B9A\u9644\u4EF6\u76EE\u5F55: ${attachementDir}`);
+    const flomoTarget = this.config["flomoTarget"] || "flomo";
+    let attachementDir = `${flomoTarget}/flomo attachment/`;
+    console.debug(`\u4F7F\u7528\u9644\u4EF6\u76EE\u5F55: ${attachementDir} (\u57FA\u4E8E flomoTarget: ${flomoTarget})`);
     for (const f of files) {
       if (f.type == "directory" && f.path.endsWith("/file/")) {
         console.debug(`DEBUG: copying from ${tmpDir}/${f.path} to ${attachementDir}`);
         try {
           await this.app.vault.adapter.mkdir(attachementDir);
           const sourceDir = `${tmpDir}/${f.path}`;
-          await this.copyAttachmentsRecursively(sourceDir, attachementDir);
+          await this.copyAttachmentsSkipUserIdDir(sourceDir, attachementDir);
         } catch (error) {
           console.warn(`\u5904\u7406\u9644\u4EF6\u76EE\u5F55\u5931\u8D25: ${tmpDir}/${f.path}`, error);
         }
@@ -84814,7 +84903,7 @@ var FlomoImporter = class {
     const dataExport = await this.sanitize(`${tmpDir}/${files[0].path}/${defaultPage}`);
     const syncedMemoIds = this.config["syncedMemoIds"] || [];
     console.debug(`DEBUG: Loaded ${syncedMemoIds.length} synced memo IDs for incremental sync`);
-    const flomo = new FlomoCore(dataExport, syncedMemoIds);
+    const flomo = new FlomoCore(dataExport, syncedMemoIds, flomoTarget);
     const memos = await this.importMemos(flomo);
     if (this.config["optionsMoments"] != "skip") {
       await generateMoments(this.app, memos, this.config);
@@ -84845,7 +84934,8 @@ var FlomoImporter = class {
     let flomoData = await this.sanitize(filePath);
     const syncedMemoIds = this.config.syncedMemoIds || [];
     console.debug(`\u4ECE\u914D\u7F6E\u4E2D\u8BFB\u53D6\u5230 ${syncedMemoIds.length} \u6761\u5DF2\u540C\u6B65\u8BB0\u5F55`);
-    const flomo = new FlomoCore(flomoData, syncedMemoIds);
+    const flomoTarget = this.config.flomoTarget || "flomo";
+    const flomo = new FlomoCore(flomoData, syncedMemoIds, flomoTarget);
     const totalMemos = flomo.memos.length;
     const newMemos = flomo.newMemosCount;
     console.log(`\u603B\u5171\u627E\u5230 ${totalMemos} \u6761\u5907\u5FD8\u5F55\uFF0C\u5176\u4E2D ${newMemos} \u6761\u662F\u65B0\u7684`);
@@ -84900,7 +84990,7 @@ var FlomoExporter = class {
   async export() {
     let browser = null;
     try {
-      browser = await chromium.launch({ headless: false });
+      browser = await chromium.launch({ headless: true });
       const context = await browser.newContext({ storageState: AUTH_FILE });
       const page = await context.newPage();
       console.log("\u6B63\u5728\u8BBF\u95EE Flomo \u5BFC\u51FA\u9875\u9762...");
@@ -85090,6 +85180,7 @@ ${err}`);
     }
   }
   onOpen() {
+    var _a2;
     const { contentEl } = this;
     contentEl.empty();
     contentEl.createEl("h3", { text: "Flomo Importer" });
@@ -85178,11 +85269,45 @@ ${err}`);
     };
     if (this.plugin.settings.lastSyncTime) {
       const lastSyncDate = new Date(this.plugin.settings.lastSyncTime);
+      const syncedCount = ((_a2 = this.plugin.settings.syncedMemoIds) == null ? void 0 : _a2.length) || 0;
       contentEl.createEl("div", {
         text: `Last sync: ${lastSyncDate.toLocaleString()}`,
         cls: "last-sync-time"
       });
+      contentEl.createEl("div", {
+        text: `Synced memos: ${syncedCount}`,
+        cls: "synced-count"
+      });
     }
+    new import_obsidian3.Setting(contentEl).setName("Reset Sync History").setDesc("Clear all synced memo IDs to re-import all memos (useful after changing attachment paths)").addButton((btn) => {
+      btn.setButtonText("Reset Sync History").setWarning().onClick(async () => {
+        var _a3;
+        const flomoTarget = this.plugin.settings.flomoTarget || "flomo";
+        const memoTarget = this.plugin.settings.memoTarget || "memos";
+        const confirmed = confirm(`Are you sure you want to reset sync history?
+
+This will clear ${((_a3 = this.plugin.settings.syncedMemoIds) == null ? void 0 : _a3.length) || 0} synced memo records.
+Next sync will re-import all memos from Flomo.
+
+\u26A0\uFE0F  IMPORTANT: Before syncing again, you should:
+1. Delete the old memos folder: ${flomoTarget}/${memoTarget}/
+2. Delete the old attachments folder if path changed
+
+Otherwise, existing files will be OVERWRITTEN!`);
+        if (confirmed) {
+          this.plugin.settings.syncedMemoIds = [];
+          this.plugin.settings.lastSyncTime = 0;
+          await this.plugin.saveSettings();
+          new import_obsidian3.Notice(`Sync history has been reset.
+
+\u26A0\uFE0F  Remember to delete old folders before next sync:
+- ${flomoTarget}/${memoTarget}/
+- ${flomoTarget}/flomo picture/ (if exists)`, 1e4);
+          this.close();
+          this.open();
+        }
+      });
+    });
     new import_obsidian3.Setting(contentEl).addButton((btn) => {
       btn.setButtonText("Cancel").setCta().onClick(async () => {
         await this.plugin.saveSettings();

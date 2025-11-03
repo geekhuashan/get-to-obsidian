@@ -6,8 +6,8 @@ export class FlomoExporter {
     async export(): Promise<[boolean, string]> {
         let browser = null;
         try {
-            // Setup
-            browser = await playwright.chromium.launch({ headless: false }); // 改为可见模式以便调试
+            // Setup - 使用无头模式后台运行（认证已完成，无需用户交互）
+            browser = await playwright.chromium.launch({ headless: true });
 
             const context = await browser.newContext({ storageState: AUTH_FILE });
             const page = await context.newPage();

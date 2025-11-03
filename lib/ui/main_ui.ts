@@ -229,14 +229,55 @@ export class MainUI extends Modal {
             }
         };
 
-        // 显示上次同步时间
+        // 显示上次同步时间和同步记录数
         if (this.plugin.settings.lastSyncTime) {
             const lastSyncDate = new Date(this.plugin.settings.lastSyncTime);
-            contentEl.createEl("div", { 
-                text: `Last sync: ${lastSyncDate.toLocaleString()}`, 
-                cls: "last-sync-time" 
+            const syncedCount = this.plugin.settings.syncedMemoIds?.length || 0;
+            contentEl.createEl("div", {
+                text: `Last sync: ${lastSyncDate.toLocaleString()}`,
+                cls: "last-sync-time"
+            });
+            contentEl.createEl("div", {
+                text: `Synced memos: ${syncedCount}`,
+                cls: "synced-count"
             });
         }
+
+        // 添加重置同步记录按钮
+        new Setting(contentEl)
+            .setName('Reset Sync History')
+            .setDesc('Clear all synced memo IDs to re-import all memos (useful after changing attachment paths)')
+            .addButton((btn) => {
+                btn.setButtonText("Reset Sync History")
+                    .setWarning()
+                    .onClick(async () => {
+                        const flomoTarget = this.plugin.settings.flomoTarget || "flomo";
+                        const memoTarget = this.plugin.settings.memoTarget || "memos";
+                        const confirmed = confirm(
+                            `Are you sure you want to reset sync history?\n\n` +
+                            `This will clear ${this.plugin.settings.syncedMemoIds?.length || 0} synced memo records.\n` +
+                            `Next sync will re-import all memos from Flomo.\n\n` +
+                            `⚠️  IMPORTANT: Before syncing again, you should:\n` +
+                            `1. Delete the old memos folder: ${flomoTarget}/${memoTarget}/\n` +
+                            `2. Delete the old attachments folder if path changed\n\n` +
+                            `Otherwise, existing files will be OVERWRITTEN!`
+                        );
+                        if (confirmed) {
+                            this.plugin.settings.syncedMemoIds = [];
+                            this.plugin.settings.lastSyncTime = 0;
+                            await this.plugin.saveSettings();
+                            new Notice(
+                                `Sync history has been reset.\n\n` +
+                                `⚠️  Remember to delete old folders before next sync:\n` +
+                                `- ${flomoTarget}/${memoTarget}/\n` +
+                                `- ${flomoTarget}/flomo picture/ (if exists)`,
+                                10000
+                            );
+                            this.close();
+                            this.open(); // 重新打开以刷新显示
+                        }
+                    })
+            });
 
         new Setting(contentEl)
             .addButton((btn) => {

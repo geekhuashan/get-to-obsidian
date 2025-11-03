@@ -2,7 +2,9 @@
 
 ##### ☕️ Make Flomo Memos to Obsidian Notes.
 
-- Discussion: [Discussion](https://github.com/jia6y/flomo-to-obsidian/discussions)
+> **Version 2.0** - Enhanced fork from [jia6y/flomo-to-obsidian](https://github.com/jia6y/flomo-to-obsidian) with major improvements
+
+- Original Discussion: [Discussion](https://github.com/jia6y/flomo-to-obsidian/discussions)
 <br />
 
 <img width="500" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/bbbf6658-b93e-4b81-b087-0dd8687958ad">
@@ -17,15 +19,48 @@
 <br />
 <br />
 
-### Features supported
-- `Auto Sync On Startup` & `Hourly Auto Sync` & `Adhoc Sync`
-- `Incremental Sync` (skip already imported memos)
-- Customize target import location
-- Support highlight mark
-- Optional: Create `Flomo Canvas` (with content | file link)
-- Optional: Create `Flomo Moments`
-- Experimental: Support Bi-directional Links in memos
-- Experimental: Merge Memos by date
+## 🎉 What's New in Version 2.0
+
+### 🔇 Silent Background Sync
+- Export process now runs silently without opening browser windows
+- Authentication still shows browser for CAPTCHA when needed
+- Much smoother user experience during automatic sync
+
+### 📁 Simplified Attachment Structure
+- **Old:** `flomo picture/file/2025-11-03/4852/filename.m4a` ❌
+- **New:** `flomo attachment/2025-11-03/filename.m4a` ✅
+- Cleaner, flatter directory structure
+- All attachment types supported (images, audio, video)
+
+### 🔄 Smart Content Update Detection
+- Automatically detects when you edit memos in Flomo
+- Re-imports updated content without manual intervention
+- No duplicates, just the latest version
+
+### 🗑️ Reset Sync History
+- New button in settings to clear sync history
+- Useful when changing attachment paths or re-importing
+- Shows sync statistics (last sync time, memo count)
+
+### ⚙️ Dynamic Path Configuration
+- Attachment paths now respect your "Flomo Home" setting
+- Fully customizable based on your preferences
+
+<br />
+
+### All Features
+- ✅ `Auto Sync On Startup` & `Hourly Auto Sync` & `Adhoc Sync`
+- ✅ `Incremental Sync` (skip already imported memos)
+- ✅ **NEW: Smart content update detection**
+- ✅ **NEW: Silent background sync**
+- ✅ **NEW: Simplified attachment structure**
+- ✅ **NEW: Reset sync history button**
+- ✅ Customize target import location
+- ✅ Support highlight mark
+- ✅ Optional: Create `Flomo Canvas` (with content | file link)
+- ✅ Optional: Create `Flomo Moments`
+- ✅ Experimental: Support Bi-directional Links in memos
+- ✅ Experimental: Merge Memos by date
 
 <br />
 
@@ -202,6 +237,31 @@ This detailed ID generation and checking process is the key to reliable incremen
 
     <img width="252" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/b1bd2399-87f1-4d60-80cf-111bbce8fe68">
 
+## 🔄 Upgrading from Version 1.x to 2.0
+
+If you're upgrading from an older version, the attachment path structure has changed. You have two options:
+
+### Option A: Clean Re-import (Recommended)
+
+1. Open Flomo Importer settings
+2. Click the **"Reset Sync History"** button
+3. Manually delete these old folders in your vault:
+   - `[Flomo Home]/memos/` (e.g., `flomo/memos/` or `10 flomo/memos/`)
+   - `[Flomo Home]/flomo picture/` (if exists)
+4. Run sync again
+5. All memos and attachments will be re-imported with the new, cleaner structure
+
+### Option B: Keep Existing Memos
+
+1. Just sync normally
+2. Only new memos will be imported with the new attachment structure
+3. Old memos keep their old attachment paths
+4. Result: Mixed structure, but nothing breaks
+
+**Note:** Content update detection works automatically. If you edit a memo in Flomo after upgrading, it will be detected and re-imported.
+
+<br />
+
 ## Plugin Settings
 
 You can customize the following options in the plugin settings page:
@@ -213,6 +273,7 @@ You can customize the following options in the plugin settings page:
 - **Flomo Target**: Folder in Obsidian vault to store Flomo memos (default: `flomo`).
 - **Memo Target**: Subfolder under Flomo folder to store individual memos (default: `memos`).
 - **Canvas & Moments Options**: Select display options for Flomo Canvas and Moments.
+- **Reset Sync History**: Clear all synced memo IDs to re-import all memos (useful after changing paths).
 
 
 

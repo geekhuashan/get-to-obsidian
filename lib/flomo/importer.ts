@@ -74,21 +74,34 @@ export class FlomoImporter {
     }
 
     // 递归复制附件目录中的所有文件
-    private async copyAttachmentsRecursively(sourceDir: string, targetDir: string): Promise<void> {
+    // skipLevels: 跳过的目录层级数（用于跳过 file/ 和用户ID目录）
+    private async copyAttachmentsRecursively(sourceDir: string, targetDir: string, skipLevels: number = 0): Promise<void> {
         try {
             const items = await fs.readdir(sourceDir, { withFileTypes: true });
-            
+
             for (const item of items) {
                 const sourcePath = `${sourceDir}/${item.name}`;
-                const targetPath = `${targetDir}${item.name}`;
-                
+
                 if (item.isDirectory()) {
-                    // 如果是目录，递归处理
-                    console.debug(`创建目录: ${targetPath}/`);
-                    await this.app.vault.adapter.mkdir(`${targetPath}/`);
-                    await this.copyAttachmentsRecursively(sourcePath, `${targetPath}/`);
+                    if (skipLevels > 0) {
+                        // 跳过这一层目录，直接递归到下一层
+                        console.debug(`跳过目录层级: ${sourcePath}`);
+                        await this.copyAttachmentsRecursively(sourcePath, targetDir, skipLevels - 1);
+                    } else {
+                        // 正常处理：检查是否包含文件
+                        const hasFiles = await this.directoryHasFiles(sourcePath);
+                        if (hasFiles) {
+                            const targetPath = `${targetDir}${item.name}`;
+                            console.debug(`创建目录: ${targetPath}/`);
+                            await this.app.vault.adapter.mkdir(`${targetPath}/`);
+                            await this.copyAttachmentsRecursively(sourcePath, `${targetPath}/`, 0);
+                        } else {
+                            console.debug(`跳过空目录: ${sourcePath}`);
+                        }
+                    }
                 } else if (item.isFile()) {
                     // 如果是文件，复制文件
+                    const targetPath = `${targetDir}${item.name}`;
                     try {
                         const content = await fs.readFile(sourcePath);
                         await this.app.vault.adapter.writeBinary(targetPath, content);
@@ -103,6 +116,86 @@ export class FlomoImporter {
         }
     }
 
+    // 检查目录是否包含文件（递归检查子目录）
+    private async directoryHasFiles(dirPath: string): Promise<boolean> {
+        try {
+            const items = await fs.readdir(dirPath, { withFileTypes: true });
+
+            for (const item of items) {
+                if (item.isFile()) {
+                    return true; // 找到文件
+                } else if (item.isDirectory()) {
+                    // 递归检查子目录
+                    const subDirPath = `${dirPath}/${item.name}`;
+                    if (await this.directoryHasFiles(subDirPath)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false; // 没有找到文件
+        } catch (error) {
+            console.warn(`检查目录失败: ${dirPath}`, error);
+            return false;
+        }
+    }
+
+    // 专门用于复制 Flomo 附件的方法
+    // Flomo 导出结构: file/日期/用户ID/文件
+    // 目标结构: flomo attachment/日期/文件 (跳过 file/ 和用户ID层)
+    private async copyAttachmentsSkipUserIdDir(sourceDir: string, targetDir: string): Promise<void> {
+        try {
+            const dateItems = await fs.readdir(sourceDir, { withFileTypes: true });
+
+            // 第一层：日期目录 (如 2025-11-03)
+            for (const dateItem of dateItems) {
+                if (!dateItem.isDirectory()) continue;
+
+                const dateDirPath = `${sourceDir}/${dateItem.name}`;
+                const targetDateDir = `${targetDir}${dateItem.name}/`;
+
+                // 检查日期目录下是否有文件
+                const hasFiles = await this.directoryHasFiles(dateDirPath);
+                if (!hasFiles) {
+                    console.debug(`跳过空日期目录: ${dateDirPath}`);
+                    continue;
+                }
+
+                // 创建日期目录
+                await this.app.vault.adapter.mkdir(targetDateDir);
+                console.debug(`创建日期目录: ${targetDateDir}`);
+
+                const userIdItems = await fs.readdir(dateDirPath, { withFileTypes: true });
+
+                // 第二层：用户ID目录 (如 4852) - 跳过这一层
+                for (const userIdItem of userIdItems) {
+                    if (!userIdItem.isDirectory()) continue;
+
+                    const userIdDirPath = `${dateDirPath}/${userIdItem.name}`;
+                    const fileItems = await fs.readdir(userIdDirPath, { withFileTypes: true });
+
+                    // 第三层：文件 - 直接复制到日期目录下
+                    for (const fileItem of fileItems) {
+                        if (!fileItem.isFile()) continue;
+
+                        const sourceFilePath = `${userIdDirPath}/${fileItem.name}`;
+                        const targetFilePath = `${targetDateDir}${fileItem.name}`;
+
+                        try {
+                            const content = await fs.readFile(sourceFilePath);
+                            await this.app.vault.adapter.writeBinary(targetFilePath, content);
+                            console.debug(`复制附件: ${sourceFilePath} -> ${targetFilePath}`);
+                        } catch (copyError) {
+                            console.warn(`复制附件失败: ${sourceFilePath}`, copyError);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn(`复制附件目录失败: ${sourceDir}`, error);
+        }
+    }
+
     async import(): Promise<FlomoCore> {
 
         // 1. Create workspace
@@ -113,24 +206,25 @@ export class FlomoImporter {
         const files = await decompress(this.config["rawDir"], tmpDir)
 
         // 3. copy attachments to ObVault
-        // 直接使用 10 flomo/flomo picture/ 作为附件目录，与图片引用路径匹配
-        let attachementDir = "10 flomo/flomo picture/";
-        
-        // 不使用 Obsidian 的附件文件夹设置，因为图片引用是硬编码的路径
-        console.debug(`使用固定附件目录: ${attachementDir}`);
+        // 使用配置中的 flomoTarget 动态生成附件目录路径
+        // 简化目录结构：flomoTarget/flomo attachment/日期/文件
+        const flomoTarget = this.config["flomoTarget"] || "flomo";
+        let attachementDir = `${flomoTarget}/flomo attachment/`;
+
+        console.debug(`使用附件目录: ${attachementDir} (基于 flomoTarget: ${flomoTarget})`);
 
         for (const f of files) {
             if (f.type == "directory" && f.path.endsWith("/file/")) {
                 console.debug(`DEBUG: copying from ${tmpDir}/${f.path} to ${attachementDir}`)
-                
+
                 try {
                     // 确保目标目录存在
                     await this.app.vault.adapter.mkdir(attachementDir);
-                    
-                    // 递归复制附件目录中的所有文件
+
+                    // 复制附件，跳过 file/ 层，保留日期目录，跳过用户ID层
                     const sourceDir = `${tmpDir}/${f.path}`;
-                    await this.copyAttachmentsRecursively(sourceDir, attachementDir);
-                    
+                    await this.copyAttachmentsSkipUserIdDir(sourceDir, attachementDir);
+
                 } catch (error) {
                     console.warn(`处理附件目录失败: ${tmpDir}/${f.path}`, error);
                 }
@@ -147,9 +241,9 @@ export class FlomoImporter {
         // 从配置中获取已同步的备忘录IDs，用于增量同步
         const syncedMemoIds = this.config["syncedMemoIds"] || [];
         console.debug(`DEBUG: Loaded ${syncedMemoIds.length} synced memo IDs for incremental sync`);
-        
-        // 将已同步的备忘录IDs传递给FlomoCore
-        const flomo = new FlomoCore(dataExport, syncedMemoIds);
+
+        // 将已同步的备忘录IDs和flomoTarget传递给FlomoCore
+        const flomo = new FlomoCore(dataExport, syncedMemoIds, flomoTarget);
 
         const memos = await this.importMemos(flomo);
 
@@ -201,8 +295,11 @@ export class FlomoImporter {
         const syncedMemoIds = this.config.syncedMemoIds || [];
         console.debug(`从配置中读取到 ${syncedMemoIds.length} 条已同步记录`);
 
-        // 将已同步ID传递给FlomoCore
-        const flomo = new FlomoCore(flomoData, syncedMemoIds);
+        // 从配置中获取 flomoTarget
+        const flomoTarget = this.config.flomoTarget || "flomo";
+
+        // 将已同步ID和flomoTarget传递给FlomoCore
+        const flomo = new FlomoCore(flomoData, syncedMemoIds, flomoTarget);
         
         const totalMemos = flomo.memos.length;
         const newMemos = flomo.newMemosCount;
