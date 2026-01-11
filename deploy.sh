@@ -1,17 +1,28 @@
 #!/bin/bash
 
-# Flomo Importer 部署脚本
+# Get笔记 Importer 部署脚本
 # 先构建，然后自动将插件文件复制到 Obsidian vault
 
-VAULT_PATH="/Users/huashan/Documents/Obsidian/Main"
-PLUGIN_DIR="$VAULT_PATH/.obsidian/plugins/flomo-importer"
+# 配置说明：请将此脚本复制为 deploy.local.sh 并修改下面的路径
+# VAULT_PATH 应该指向你的 Obsidian vault 根目录
+# 例如: VAULT_PATH="/Users/你的用户名/Documents/Obsidian/你的vault名称"
 
-echo "🚀 开始部署 Flomo Importer 插件..."
+# 如果未设置 VAULT_PATH 环境变量，使用默认路径
+if [ -z "$VAULT_PATH" ]; then
+    echo "⚠️  请设置 VAULT_PATH 环境变量或复制此脚本为 deploy.local.sh 并修改路径"
+    echo "   例如: export VAULT_PATH=\"/Users/your-username/Documents/Obsidian/YourVault\""
+    echo "   或者: cp deploy.sh deploy.local.sh 然后编辑 deploy.local.sh"
+    exit 1
+fi
+
+PLUGIN_DIR="$VAULT_PATH/.obsidian/plugins/get-importer"
+
+echo "🚀 开始部署 Get笔记 Importer 插件..."
 echo ""
 
 # 先构建
 echo "🔨 构建插件..."
-npm run build
+node esbuild.config.mjs production
 if [ $? -ne 0 ]; then
     echo "❌ 构建失败"
     exit 1

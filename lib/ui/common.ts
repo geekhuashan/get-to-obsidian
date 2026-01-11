@@ -1,6 +1,6 @@
 import { HTMLElement } from "node-html-parser";
 
-export function flomoDate (daysAgo:number = 0) :string[] {
+export function getDate (daysAgo:number = 0) :string[] {
     const date = new Date();
     const last = new Date(date.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
     const dd = String(last.getDate()).padStart(2, '0');

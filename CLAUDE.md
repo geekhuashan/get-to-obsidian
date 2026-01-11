@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Flomo Importer** is an Obsidian plugin that syncs notes from Flomo (a Chinese note-taking service) into Obsidian. It's a desktop-only plugin that uses Playwright for browser automation to authenticate and export data from Flomo.
+**Get笔记 Importer** is an Obsidian plugin that syncs notes from Get笔记 (a Chinese note-taking service) into Obsidian. It's a desktop-only plugin that uses Playwright for browser automation to authenticate and export data from Get笔记.
 
 **Key Features:**
 - Incremental sync (only imports new memos using content-based ID generation)
@@ -45,23 +45,23 @@ npm run version    # Bump version (updates manifest.json & versions.json for BRA
 ### Core Data Flow
 
 ```
-Authentication (lib/flomo/auth.ts)
+Authentication (lib/get/auth.ts)
     ↓ - Playwright-based login
-    ↓ - Stores credentials in ~/.flomo/cache/playwright/flomo_auth.json
+    ↓ - Stores credentials in ~/.get/cache/playwright/get_auth.json
     ↓
-Export (lib/flomo/exporter.ts)
+Export (lib/get/exporter.ts)
     ↓ - Playwright automates browser to download HTML export
-    ↓ - Saves to ~/.flomo/cache/playwright/flomo_export.zip
+    ↓ - Saves to ~/.get/cache/playwright/get_export.zip
     ↓
-Parse & Process (lib/flomo/core.ts - FlomoCore class)
+Parse & Process (lib/get/core.ts - Get笔记Core class)
     ↓ - Parses HTML with node-html-parser
     ↓ - Generates unique memo IDs: ${timestamp}_${contentHash}_${occurrence}_${total}
     ↓ - Filters against syncedMemoIds array for incremental sync
     ↓ - Supports backward compatibility with old ID format
     ↓
-Import (lib/flomo/importer.ts - FlomoImporter class)
+Import (lib/get/importer.ts - Get笔记Importer class)
     ↓ - Creates markdown files using Obsidian Vault API
-    ↓ - Copies attachments to "10 flomo/flomo picture/" (hardcoded path)
+    ↓ - Copies attachments to "10 get/get picture/" (hardcoded path)
     ↓ - Optionally generates Canvas/Moments visualizations
     ↓
 State Update (main.ts)
@@ -72,29 +72,29 @@ State Update (main.ts)
 ### Key Classes & Responsibilities
 
 - **main.ts:** Plugin entry point
-  - `FlomoImporterPlugin` class extends Obsidian's Plugin
+  - `Get笔记ImporterPlugin` class extends Obsidian's Plugin
   - Manages settings, auto-sync timers (startup + hourly interval)
-  - Registers commands (`open-flomo-importer`, `sync-flomo-now`)
+  - Registers commands (`open-get-importer`, `sync-get-now`)
   - Ribbon icon for quick access
 
-- **lib/flomo/core.ts:** Core data processing
-  - `FlomoCore` class: HTML parsing, memo extraction, ID generation
+- **lib/get/core.ts:** Core data processing
+  - `Get笔记Core` class: HTML parsing, memo extraction, ID generation
   - `loadMemos()`: Iterates through `<div class="memo">` elements
   - `generateMemoId()`: Creates unique IDs for incremental sync
   - Content hashing using simple sum algorithm
 
-- **lib/flomo/auth.ts:** Authentication layer
-  - `FlomoAuth` class: Playwright-based login automation
+- **lib/get/auth.ts:** Authentication layer
+  - `Get笔记Auth` class: Playwright-based login automation
   - Handles email/phone + password + CAPTCHA scenarios
   - Caches authentication state
 
-- **lib/flomo/exporter.ts:** Export automation
-  - `FlomoExporter` class: Automates Flomo export via Playwright
+- **lib/get/exporter.ts:** Export automation
+  - `Get笔记Exporter` class: Automates Get笔记 export via Playwright
   - Downloads HTML backup zip file
 
-- **lib/flomo/importer.ts:** Import orchestration
-  - `FlomoImporter` class: Coordinates import process
-  - `importFlomoFile()`: Main entry point
+- **lib/get/importer.ts:** Import orchestration
+  - `Get笔记Importer` class: Coordinates import process
+  - `importGet笔记File()`: Main entry point
   - Groups memos by date, handles merge-by-date option
   - Manages attachment copying (recursive directory operations)
 
@@ -127,9 +127,9 @@ The plugin generates a unique ID for each memo based on:
 ```
 main.ts                   # Plugin entry point
 lib/
-  flomo/
+  get/
     auth.ts              # Playwright auth automation
-    const.ts             # Constants (cache paths: ~/.flomo/cache/)
+    const.ts             # Constants (cache paths: ~/.get/cache/)
     core.ts              # HTML parsing & memo ID generation
     exporter.ts          # Playwright export automation
     importer.ts          # Import orchestration & file writing
@@ -147,11 +147,11 @@ lib/
 ## Important Constraints & Quirks
 
 ### Hard-Coded Paths
-- **Attachment Directory:** `10 flomo/flomo picture/` - This path is hardcoded in the importer
-- **Cache Location:** `~/.flomo/cache/playwright/` - Defined in `lib/flomo/const.ts`
-- **Auth File:** `flomo_auth.json` in cache directory
-- **Download File:** `flomo_export.zip` in cache directory
-- **Temp Workspace:** `~/.flomo/cache/data/` for extraction
+- **Attachment Directory:** `10 get/get picture/` - This path is hardcoded in the importer
+- **Cache Location:** `~/.get/cache/playwright/` - Defined in `lib/get/const.ts`
+- **Auth File:** `get_auth.json` in cache directory
+- **Download File:** `get_export.zip` in cache directory
+- **Temp Workspace:** `~/.get/cache/data/` for extraction
 
 ### Playwright Dependency
 - **Desktop Only:** Plugin requires Playwright, cannot work on mobile
@@ -159,8 +159,8 @@ lib/
 - **Installation Required:** Users must run `npx playwright@1.43.1 install` after plugin installation
 
 ### Settings Structure
-Key settings in `FlomoImporterSettings`:
-- `flomoTarget`: Main folder (default: "flomo")
+Key settings in `Get笔记ImporterSettings`:
+- `getTarget`: Main folder (default: "get")
 - `memoTarget`: Memo subfolder (default: "memos")
 - `syncedMemoIds`: Array of synced memo IDs (grows indefinitely)
 - `lastSyncTime`: Timestamp of last sync
@@ -172,7 +172,7 @@ Key settings in `FlomoImporterSettings`:
 
 ### Content Processing
 - **Markdown Conversion:** Uses `turndown` and `node-html-markdown` for HTML → Markdown
-- **Highlight Syntax:** Converts Flomo's `<mark>` to Obsidian's `==highlight==`
+- **Highlight Syntax:** Converts Get笔记's `<mark>` to Obsidian's `==highlight==`
 - **Bi-directional Links:** Experimental feature to preserve `[[wiki-links]]`
 - **Attachment Handling:** Recursively copies images/files from extracted zip to vault
 
@@ -183,14 +183,14 @@ Key settings in `FlomoImporterSettings`:
 ## Common Modification Scenarios
 
 ### Changing Import Format/Template
-- Edit [lib/flomo/importer.ts](lib/flomo/importer.ts) - Controls markdown output format and frontmatter
+- Edit [lib/get/importer.ts](lib/get/importer.ts) - Controls markdown output format and frontmatter
 
 ### Modifying Visualizations
 - Edit [lib/obIntegration/moments.ts](lib/obIntegration/moments.ts) - Moments display logic
 - Edit [lib/obIntegration/canvas.ts](lib/obIntegration/canvas.ts) - Canvas layout and styling
 
 ### Adjusting Sync Logic
-- Edit [lib/flomo/core.ts](lib/flomo/core.ts) - Memo parsing and ID generation
+- Edit [lib/get/core.ts](lib/get/core.ts) - Memo parsing and ID generation
 - **Caution:** Changing ID generation will break incremental sync for existing users
 
 ### UI Modifications
@@ -198,7 +198,7 @@ Key settings in `FlomoImporterSettings`:
 - Edit [styles.css](styles.css) for styling changes
 
 ### Changing Cache/Storage Paths
-- Edit [lib/flomo/const.ts](lib/flomo/const.ts) - All path constants defined here
+- Edit [lib/get/const.ts](lib/get/const.ts) - All path constants defined here
 
 ## Plugin Metadata
 

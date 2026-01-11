@@ -105,3 +105,23 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Claude Code settings
+.claude/
+
+# Build output
+main.js
+*.js.map
+
+# Obsidian plugin deployment
+.obsidian/
+
+# Get笔记 cache (user-specific)
+.get/
+
+# Local deployment scripts with hardcoded paths
+deploy.local.sh
+
+# IDE settings
+.vscode/
+.idea/

@@ -1,282 +1,583 @@
-# Flomo Importer
+# 📓 Get笔记 Importer for Obsidian
 
-##### ☕️ Make Flomo Memos to Obsidian Notes.
+<div align="center">
 
-> **Version 2.0** - Enhanced fork from [jia6y/flomo-to-obsidian](https://github.com/jia6y/flomo-to-obsidian) with major improvements
+一个将 [Get笔记](https://www.biji.com/) 的内容同步到 Obsidian 的插件。支持增量同步、自动同步和多种可视化方式。
 
-- Original Discussion: [Discussion](https://github.com/jia6y/flomo-to-obsidian/discussions)
-<br />
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Obsidian](https://img.shields.io/badge/Obsidian-0.15.0+-purple)](https://obsidian.md/)
 
-<img width="500" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/bbbf6658-b93e-4b81-b087-0dd8687958ad">
+[功能特性](#-功能特性) • [安装](#-安装) • [使用指南](#-使用指南) • [常见问题](#-常见问题) • [贡献](#-贡献)
 
+</div>
 
-<br/>
-<br/>
+---
 
-<img width="550" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/14059ed5-6ae8-4d39-bbfc-a651e29b3a53">
+## 🎉 Version 2.0 重大更新
 
+### ✨ 新功能
 
-<br />
-<br />
+- **🔇 静默后台同步**：导出过程在后台静默运行，不再打开浏览器窗口
+- **📁 简化的附件结构**：从 `get picture/file/日期/用户ID/文件名` 简化为 `get attachment/日期/文件名`
+- **🔄 智能内容更新检测**：自动检测 Get笔记 中的笔记修改，重新导入更新的内容
+- **🗑️ 重置同步历史**：设置中新增重置按钮，可清除同步历史重新导入
+- **⚙️ 动态路径配置**：附件路径跟随"Get笔记主目录"设置自动调整
 
-## 🎉 What's New in Version 2.0
+---
 
-### 🔇 Silent Background Sync
-- Export process now runs silently without opening browser windows
-- Authentication still shows browser for CAPTCHA when needed
-- Much smoother user experience during automatic sync
+## ✨ 功能特性
 
-### 📁 Simplified Attachment Structure
-- **Old:** `flomo picture/file/2025-11-03/4852/filename.m4a` ❌
-- **New:** `flomo attachment/2025-11-03/filename.m4a` ✅
-- Cleaner, flatter directory structure
-- All attachment types supported (images, audio, video)
+### 核心功能
 
-### 🔄 Smart Content Update Detection
-- Automatically detects when you edit memos in Flomo
-- Re-imports updated content without manual intervention
-- No duplicates, just the latest version
+- ✅ **增量同步**：智能识别已同步的笔记，只导入新增内容，避免重复
+- ✅ **智能更新检测**：自动识别 Get笔记 中修改过的笔记并重新导入
+- ✅ **多种同步方式**：
+  - 启动时自动同步
+  - 定时自动同步（每小时）
+  - 手动一键同步
+  - 手动导入 ZIP 文件
 
-### 🗑️ Reset Sync History
-- New button in settings to clear sync history
-- Useful when changing attachment paths or re-importing
-- Shows sync statistics (last sync time, memo count)
+### 可视化功能
 
-### ⚙️ Dynamic Path Configuration
-- Attachment paths now respect your "Flomo Home" setting
-- Fully customizable based on your preferences
+- 🎨 **Moments 时间线**：按时间倒序显示所有笔记
+- 🎨 **Canvas 画布**：画布模式展示笔记网络（支持链接/嵌入两种模式）
 
-<br />
+### 高级功能
 
-### All Features
-- ✅ `Auto Sync On Startup` & `Hourly Auto Sync` & `Adhoc Sync`
-- ✅ `Incremental Sync` (skip already imported memos)
-- ✅ **NEW: Smart content update detection**
-- ✅ **NEW: Silent background sync**
-- ✅ **NEW: Simplified attachment structure**
-- ✅ **NEW: Reset sync history button**
-- ✅ Customize target import location
-- ✅ Support highlight mark
-- ✅ Optional: Create `Flomo Canvas` (with content | file link)
-- ✅ Optional: Create `Flomo Moments`
-- ✅ Experimental: Support Bi-directional Links in memos
-- ✅ Experimental: Merge Memos by date
+- 🔗 **双向链接支持**（实验性）：保留 Get笔记 中的 `[[wiki-links]]` 格式
+- 📅 **按日期合并笔记**：可选将同一天的笔记合并为一个文件
+- 🖼️ **附件支持**：自动下载并保存图片、音频等附件
+- ⚡ **高亮语法**：自动转换 `<mark>` 为 Obsidian 的 `==高亮==` 语法
 
-<br />
+---
 
-## 功能详解 (Features in Detail)
+## 🚀 安装
 
-This plugin offers several ways to import and manage your Flomo notes within Obsidian:
+### 前置要求
 
-- **多种同步方式 (Multiple Sync Methods):**
-  - **启动时自动同步 (Auto Sync On Startup):** Enable this in settings to automatically sync when Obsidian starts.
-  - **每小时自动同步 (Hourly Auto Sync):** Enable this in settings for automatic background sync every hour.
-  - **手动同步 (Adhoc Sync / Manual Sync):**
-    - **自动导出与导入 (Auto Export & Import):** Click the "Sync Now" button in the plugin UI. This uses Playwright to log in to Flomo, export your notes as HTML, and import them.
-    - **手动导入 (Manual Import):** Export your notes as HTML (`flomo_backup.zip`) from the Flomo website yourself, then select the zip file in the plugin UI to import.
-- **增量同步 (Incremental Sync):** The core feature. The plugin intelligently identifies and imports only *new* memos since the last sync, preventing duplicates. It remembers which memos have been imported.
-- **自定义导入位置 (Customizable Import Location):** Specify the target folder in your Obsidian vault for imported Flomo notes (`Flomo Target`) and a subfolder for individual memos (`Memo Target`).
-- **支持高亮标记 (Highlight Support):** Correctly converts Flomo's `<mark>` tags to Obsidian's `==highlight==` syntax.
-- **Obsidian 集成 (Obsidian Integrations):**
-  - **Flomo Canvas:** Optionally generates an Obsidian Canvas file visualizing your memos, either linking to the memo files or embedding the content directly.
-  - **Flomo Moments:** Optionally generates a `Flomo Moments.md` file that embeds links to all imported memo files, providing a chronological overview.
-- **实验性功能 (Experimental Features):**
-  - **双向链接支持 (Bi-directional Link Support):** Attempts to preserve `[[wiki-links]]` within your memo content during import.
-  - **按日期合并笔记 (Merge Memos by Date):** Option to merge all memos from the same day into a single Obsidian note, separated by `---`.
+- **Obsidian**：版本 0.15.0 或更高
+- **Node.js**：用于构建插件（如果手动安装）
+- **Playwright**：浏览器自动化工具（必需）
 
-<br />
+### 方式一：手动安装（推荐）
 
-## 代码库结构 (Codebase Structure)
+#### 1. 克隆仓库
 
-The project is organized as follows:
-
-```
-esbuild.config.mjs  # Build configuration for esbuild (compiles TS to JS)
-main.ts             # Plugin entry point: loads settings, adds commands/icons, initializes UI and auto-sync
-manifest.json       # Plugin metadata (name, version, author, etc.)
-package.json        # Project dependencies and npm scripts (build, dev, version)
-styles.css          # Custom CSS styles for the plugin UI
-versions.json       # Version history (used by BRAT)
-lib/                # Core logic directory
-  flomo/            # Flomo-specific functionalities
-    auth.ts         # Handles authentication logic (likely using Playwright)
-    const.ts        # Defines constants (like cache paths, filenames)
-    core.ts         # Core data processing: parses HTML, identifies memos, generates IDs for incremental sync
-    exporter.ts     # Handles exporting data from Flomo (using Playwright)
-    importer.ts     # Handles importing data into Obsidian: reads files, uses FlomoCore, writes notes
-  obIntegration/    # Obsidian-specific integrations
-    canvas.ts       # Logic for generating the Flomo Canvas file
-    moments.ts      # Logic for generating the Flomo Moments file
-  ui/               # User Interface components
-    auth_ui.ts      # UI modal for Flomo authentication
-    common.ts       # Shared UI helper functions or components
-    main_ui.ts      # Main plugin settings and action UI modal
-    manualsync_ui.ts# UI section/modal for manual zip file import
-    message_ui.ts   # UI components for displaying messages/notices
-node_modules/       # Installed npm dependencies
+```bash
+git clone https://github.com/你的用户名/get-to-obsidian.git
+cd get-to-obsidian
 ```
 
-<br/>
+#### 2. 安装依赖
 
-## 同步逻辑详解 (Synchronization Logic Explained)
+```bash
+npm install
+```
 
-Understanding how synchronization works, especially incrementally:
+#### 3. 安装 Playwright（重要！）
 
-1.  **触发 (Trigger):** Sync can be triggered automatically (on startup, hourly timer via `main.ts`) or manually (clicking "Sync Now" in `main_ui.ts` or using the "Sync Flomo Now" command).
-2.  **导出 (Export - Auto Sync/Sync Now Button):**
-    *   The `FlomoExporter` utilizes Playwright (a browser automation tool) to:
-        *   Log in to your Flomo account (using credentials potentially stored securely).
-        *   Navigate to the export page.
-        *   Download the full backup as an HTML file (saved to a location defined in `const.ts`, e.g., `DOWNLOAD_FILE`).
-3.  **导入入口 (Import Entry Point):**
-    *   The `FlomoImporter` class is instantiated.
-    *   The `importFlomoFile` method is called, passing the path to the downloaded HTML file (`DOWNLOAD_FILE`).
-4.  **数据读取与解析 (Data Reading & Parsing):**
-    *   `FlomoImporter` reads the HTML file content.
-    *   It calls `FlomoCore`'s constructor, passing the HTML data and the list of already synced memo IDs (`syncedMemoIds`) loaded from the plugin's saved settings (`this.settings.syncedMemoIds`).
-5.  **核心处理与增量识别 (`FlomoCore`):**
-    *   The constructor parses the HTML structure.
-    *   The `loadMemos` method iterates through each memo element (`<div class="memo">`).
-    *   **Crucially for Incremental Sync:** For *each* memo found in the HTML, a unique `memoId` is generated. This ID is based on a combination of:
-        *   The memo's exact timestamp.
-        *   A hash of its content (title, body, attachments).
-        *   A counter for memos with the *exact same timestamp* (to differentiate them).
-        *   An overall sequential counter.
-    *   This generated `memoId` is compared against the `syncedMemoIds` list received from the settings.
-    *   **If the ID is NOT in the list:** It's considered a **new memo**. Its `memoId` is added to the *instance's* `syncedMemoIds` list, `newMemosCount` is incremented, and the memo's data is added to the `memos` array to be processed.
-    *   **If the ID IS in the list:** It's skipped.
-6.  **写入 Obsidian (`FlomoImporter.importFlomoFile`):**
-    *   The method receives the processed data from `FlomoCore`, including the list of *only the newly identified* memos.
-    *   It groups these new memos by date.
-    *   Based on the "Merge Memos by Date" setting, it writes the content of each new memo (or merged content) to the appropriate file path within the specified `Flomo Target` and `Memo Target` folders in your vault.
-    *   It potentially calls `generateMoments` and `generateCanvas` if enabled.
-7.  **状态保存 (State Saving - `main.ts`):**
-    *   After `importFlomoFile` completes, the plugin calls `saveSettings()`.
-    *   This saves the updated `syncedMemoIds` list (which now includes the IDs of the newly imported memos) and the current `lastSyncTime` back into Obsidian's persistent storage for this plugin. This ensures the *next* sync knows about these newly added memos.
-8.  **通知 (Notification):** A notice is displayed indicating how many memos were found and how many were newly imported.
+```bash
+npx playwright@1.43.1 install
+```
 
-This detailed ID generation and checking process is the key to reliable incremental synchronization, ensuring only new content is added to your Obsidian vault.
+> ⚠️ **必须安装 Playwright**：本插件使用 Playwright 进行浏览器自动化，这是同步功能的核心依赖。
 
-<br />
+<details>
+<summary>💡 Playwright 安装失败？点击查看解决方案</summary>
 
-## 开发与修改指南
+如果在中国大陆地区安装失败，可以使用镜像：
 
-### 开发环境设置
-1. 克隆仓库
-2. 安装依赖：`npm install`
-3. 安装Playwright (必需)：`npx playwright@1.43.1 install`
+```bash
+export PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/
+npx playwright@1.43.1 install
+```
 
-### 修改模板和格式
-如果需要修改导入的笔记格式或模板:
-- 编辑 `lib/flomo/importer.ts` - 负责将Flomo笔记转换为Obsidian格式
-- 编辑 `lib/obIntegration/moments.ts` - 修改Moments功能的显示方式
-- 编辑 `lib/obIntegration/canvas.ts` - 修改Canvas展示格式
+或者强制重新安装：
 
-### 修改UI
-- UI相关的修改主要集中在 `lib/ui/` 目录下
-- 样式修改可以在 `styles.css` 文件中进行
+```bash
+npx playwright@1.43.1 install --force
+```
 
-### 构建项目
-- 开发模式 (实时编译): `npm run dev`
-- 生产构建: `npm run build`
-- 构建后的文件为 `main.js`
+</details>
 
-### 版本管理
-- 版本更新: `npm run version`
-- 版本信息在 `manifest.json` 和 `versions.json` 中定义
+#### 4. 构建插件
 
-<br />
+```bash
+npm run build
+```
 
-### First time to use it?
+#### 5. 复制到 Obsidian 插件目录
 
-#### Install Dependency
-  - **Playwright (MUST HAVE) :** `npx playwright@1.43.1 install`
-  - (this plugin was pre-built with version 1.43.1)
+将以下文件复制到你的 Obsidian vault 的 `.obsidian/plugins/get-importer/` 目录：
 
-#### Install And Enable the plugin
-  - Install `Flomo Importer` and enable it.
+- `main.js`
+- `manifest.json`
+- `styles.css`
 
-    <img width="225" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/88cff082-e33f-4671-ba24-7059c6bbce88">
-  
-  - Use the command `Open Flomo Importer`, or use `Import Button`
-    
-    <img width="230" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/28a31eaa-921d-49cb-a633-984d06550792">
+**或者使用部署脚本（需要先配置）：**
 
-#### Auto Sync
-  - Click on "Auto Sync"
+```bash
+# 方式 1: 使用环境变量
+export VAULT_PATH="/path/to/your/obsidian/vault"
+./deploy.sh
 
-    <img width="350" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/71af02c3-9c14-4eec-b56f-d6207178ccd5">
+# 方式 2: 创建本地部署脚本
+cp deploy.sh deploy.local.sh
+# 编辑 deploy.local.sh，设置 VAULT_PATH 为你的 vault 路径
+./deploy.local.sh
+```
 
-  - Authentication is required if the first time syncs or the current sign-in expires.
+#### 6. 启用插件
 
-    <img width="350" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/7754586a-e9e2-40b7-93c1-0dbcc0631a1e">
+1. 重启 Obsidian
+2. 进入 `设置` → `第三方插件` → 关闭`安全模式`
+3. 在`已安装插件`中找到 `Get笔记 Importer` 并启用
 
-  - Exporting & Importing
+### 方式二：使用 BRAT（开发版）
 
-    <img width="300" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/24910880-6201-497f-8359-191e476a5bed">
+1. 安装 [BRAT](https://github.com/TfTHacker/obsidian42-brat) 插件
+2. 在 BRAT 设置中添加此仓库
+3. BRAT 会自动下载和更新插件
 
+> ⚠️ **注意**：使用 BRAT 安装后，仍需手动安装 Playwright：`npx playwright@1.43.1 install`
 
+---
 
-#### Adhoc Sync
+## 📖 使用指南
 
-###### 📦 **Export from Flomo**
-  - Go to `Account Details` 
-  - Select `Export All (as HTML)`
-    
-    <img width="350" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/b6222501-b0e7-45f4-8acb-6b489c9b1fc0">
+### 首次使用
 
-  - Click on `Start to export`
+#### 步骤 1：打开插件界面
 
-###### 🎯 **Import to Obsidian**
+- 点击左侧边栏的笔记本图标 📓
+- 或使用命令面板：`Ctrl/Cmd + P` → 输入 `Get笔记`
 
-  - Choose flomo.zip to Import. The `Flomo & Memo Home` is where to store your memos.
+#### 步骤 2：登录 Get笔记 账号
 
-  - A Notice pops up when the import is completed.
-    
-  - Checkout **Flmomo Moments** and **Flomo Canvas** 🌅
+1. 点击"登录 Get笔记 账号"按钮
+2. 在弹出的浏览器中：
+   - 输入手机号
+   - 手动点击"获取验证码"
+   - 输入验证码
+   - 点击"登录"
+3. 等待约 10 秒，插件会自动检测登录成功
 
-    <img width="252" alt="image" src="https://github.com/jia6y/flomo-to-obsidian/assets/1456952/b1bd2399-87f1-4d60-80cf-111bbce8fe68">
+<img width="350" alt="登录界面" src="https://github.com/jia6y/get-to-obsidian/assets/1456952/7754586a-e9e2-40b7-93c1-0dbcc0631a1e">
 
-## 🔄 Upgrading from Version 1.x to 2.0
+#### 步骤 3：配置基本设置（可选）
 
-If you're upgrading from an older version, the attachment path structure has changed. You have two options:
+- **主文件夹**：笔记存储的根目录（默认：`get`）
+- **笔记子目录**：笔记文件的子目录（默认：`memos`）
+- 例如：笔记会保存在 `get/memos/2024-01-15/` 目录下
 
-### Option A: Clean Re-import (Recommended)
+#### 步骤 4：首次同步
 
-1. Open Flomo Importer settings
-2. Click the **"Reset Sync History"** button
-3. Manually delete these old folders in your vault:
-   - `[Flomo Home]/memos/` (e.g., `flomo/memos/` or `10 flomo/memos/`)
-   - `[Flomo Home]/flomo picture/` (if exists)
-4. Run sync again
-5. All memos and attachments will be re-imported with the new, cleaner structure
+1. 点击"立即同步"按钮
+2. 等待浏览器自动打开并导出数据
+3. 插件会自动下载、解析并导入笔记
 
-### Option B: Keep Existing Memos
+<img width="300" alt="同步过程" src="https://github.com/jia6y/get-to-obsidian/assets/1456952/24910880-6201-497f-8359-191e476a5bed">
 
-1. Just sync normally
-2. Only new memos will be imported with the new attachment structure
-3. Old memos keep their old attachment paths
-4. Result: Mixed structure, but nothing breaks
+### 日常使用
 
-**Note:** Content update detection works automatically. If you edit a memo in Flomo after upgrading, it will be detected and re-imported.
+#### 自动同步（推荐）
 
-<br />
+1. **启动时自动同步**
+   - 在设置中开启"启动时自动同步"
+   - 每次打开 Obsidian 时会自动同步新笔记
 
-## Plugin Settings
+2. **定时自动同步**
+   - 开启"每小时自动同步"
+   - 插件会每 60 分钟自动检查并同步新内容
 
-You can customize the following options in the plugin settings page:
+3. **查看同步状态**
+   - 插件界面会显示：
+     - ⏰ 上次同步时间
+     - 📊 已同步笔记数量
+     - ✅ 同步状态
 
-- **Auto Sync On Startup**: Automatically sync when Obsidian is launched.
-- **Auto Sync Interval**: Automatically sync every hour.
-- **Incremental Sync**: Skip already imported memos and only import new ones.
-- **Merge Memos by Date**: Merge multiple memos from the same day into a single file.
-- **Flomo Target**: Folder in Obsidian vault to store Flomo memos (default: `flomo`).
-- **Memo Target**: Subfolder under Flomo folder to store individual memos (default: `memos`).
-- **Canvas & Moments Options**: Select display options for Flomo Canvas and Moments.
-- **Reset Sync History**: Clear all synced memo IDs to re-import all memos (useful after changing paths).
+<img width="350" alt="自动同步" src="https://github.com/jia6y/get-to-obsidian/assets/1456952/71af02c3-9c14-4eec-b56f-d6207178ccd5">
 
+#### 手动同步
 
+**方式 1：自动导出导入**
+- 点击插件界面的"立即同步"按钮
+- 或使用快捷命令：`Ctrl/Cmd + P` → `Get笔记: 立即同步`
 
+**方式 2：手动导入 ZIP 文件**
+1. 在 Get笔记 网页版导出备份（选择 HTML 格式）
+2. 在插件界面选择导出的 ZIP 文件
+3. 点击导入
 
+<img width="350" alt="手动导出" src="https://github.com/jia6y/get-to-obsidian/assets/1456952/b6222501-b0e7-45f4-8acb-6b489c9b1fc0">
 
+### 高级功能
 
+#### 可视化设置
+
+**1. Moments 时间线**
+- 开启后，会生成 `Get Moments.md` 文件
+- 按时间倒序显示所有笔记的嵌入链接
+- 适合快速浏览和回顾
+
+**2. Canvas 画布**
+- 开启后，会生成 `Get Canvas.canvas` 文件
+- 支持两种模式：
+  - **链接模式**：显示文件链接，保持文件同步
+  - **嵌入模式**：直接嵌入笔记内容
+- 画布大小可调整：小、中、大
+
+<img width="252" alt="Canvas示例" src="https://github.com/jia6y/get-to-obsidian/assets/1456952/b1bd2399-87f1-4d60-80cf-111bbce8fe68">
+
+#### 实验性选项
+
+**1. 双向链接支持**
+- 保留 Get笔记 中的 `[[链接]]` 格式
+- 在 Obsidian 中可以直接跳转
+
+**2. 按日期合并笔记**
+- 将同一天的所有笔记合并为一个文件
+- 文件名格式：`memo@2024-01-15.md`
+
+### 数据管理
+
+#### 重置同步历史
+
+如果需要重新导入所有笔记：
+
+1. 点击"重置同步历史"
+2. 确认操作
+3. 删除旧的笔记文件夹（如 `get/memos/`）
+4. 重新执行同步
+
+> ⚠️ **警告**：此操作会清除同步记录，可能导致重复导入。建议先备份重要数据。
+
+---
+
+## 📂 文件结构
+
+同步后，你的 Obsidian vault 会生成以下结构：
+
+```
+你的 Vault/
+├── get/                          # 主文件夹（可自定义）
+│   ├── memos/                    # 笔记子目录
+│   │   ├── 2024-01-15/          # 按日期分组
+│   │   │   ├── memo@笔记标题_1.md
+│   │   │   ├── memo@笔记标题_2.md
+│   │   │   └── ...
+│   │   └── ...
+│   ├── get attachment/          # 附件目录（新版本结构）
+│   │   ├── 2024-01-15/
+│   │   │   ├── image1.jpg
+│   │   │   ├── audio.m4a
+│   │   │   └── ...
+│   │   └── ...
+│   ├── Get Moments.md           # 时间线文件（可选）
+│   └── Get Canvas.canvas        # 画布文件（可选）
+└── ...
+```
+
+---
+
+## 🔧 开发指南
+
+### 本地开发
+
+```bash
+# 克隆仓库
+git clone https://github.com/你的用户名/get-to-obsidian.git
+cd get-to-obsidian
+
+# 安装依赖
+npm install
+
+# 安装 Playwright
+npx playwright@1.43.1 install
+
+# 开发模式（热重载）
+npm run dev
+
+# 构建生产版本
+npm run build
+
+# 代码检查
+npm run lint
+
+# 自动修复代码风格
+npm run fix
+```
+
+### 项目结构
+
+```
+get-to-obsidian/
+├── lib/
+│   ├── get/                    # 核心功能
+│   │   ├── auth.ts            # 认证登录
+│   │   ├── core.ts            # 数据解析
+│   │   ├── exporter.ts        # 数据导出
+│   │   ├── importer.ts        # 数据导入
+│   │   └── const.ts           # 常量定义
+│   ├── obIntegration/         # Obsidian 集成
+│   │   ├── canvas.ts          # Canvas 生成
+│   │   └── moments.ts         # Moments 生成
+│   └── ui/                    # 用户界面
+│       ├── auth_ui.ts         # 登录界面
+│       ├── main_ui.ts         # 主界面
+│       ├── manualsync_ui.ts   # 手动导入界面
+│       └── ...
+├── main.ts                    # 插件入口
+├── manifest.json              # 插件清单
+├── styles.css                 # 样式文件
+├── esbuild.config.mjs         # 构建配置
+├── package.json               # 项目依赖
+└── ...
+```
+
+### 技术架构
+
+#### 核心技术
+
+- **Obsidian Plugin API**：插件开发框架
+- **Playwright**：浏览器自动化，用于登录和导出
+- **TypeScript**：类型安全的开发语言
+- **node-html-parser**：HTML 解析
+- **turndown**：HTML 转 Markdown
+
+#### 同步流程
+
+```
+1. 用户触发同步
+   ↓
+2. Playwright 打开浏览器登录 Get笔记
+   ↓
+3. 自动导出数据为 HTML 压缩包
+   ↓
+4. 解析 HTML，提取笔记内容
+   ↓
+5. 生成唯一 ID（时间戳 + 内容哈希）
+   ↓
+6. 过滤已同步的笔记（增量同步）
+   ↓
+7. 转换为 Markdown 格式
+   ↓
+8. 保存到 Obsidian vault
+   ↓
+9. 可选：生成 Moments 和 Canvas
+   ↓
+10. 更新同步记录
+```
+
+#### 增量同步原理
+
+插件为每条笔记生成唯一 ID：
+
+```
+格式：${时间戳}_${内容哈希}_${出现次数}_${总数}
+示例：2024-01-15T10:30:00_abc123_1_245
+```
+
+- **时间戳**：笔记创建时间
+- **内容哈希**：标题 + 正文 + 附件的哈希值
+- **出现次数**：区分同一时间的不同笔记
+- **总数**：序列编号
+
+已同步的 ID 存储在插件设置中，每次同步只导入新 ID 的笔记。
+
+### 修改指南
+
+#### 修改导入格式/模板
+编辑 `lib/get/importer.ts` - 控制 Markdown 输出格式和 frontmatter
+
+#### 修改可视化
+- `lib/obIntegration/moments.ts` - Moments 显示逻辑
+- `lib/obIntegration/canvas.ts` - Canvas 布局和样式
+
+#### 修改 UI
+- `lib/ui/` 目录下的文件 - UI 组件
+- `styles.css` - 样式修改
+
+#### 修改缓存/存储路径
+编辑 `lib/get/const.ts` - 所有路径常量
+
+### 发布新版本
+
+```bash
+# 更新版本号（会自动更新 manifest.json 和 versions.json）
+npm run version
+
+# 构建
+npm run build
+
+# 提交更改
+git add .
+git commit -m "Release version X.X.X"
+git push
+
+# 创建 GitHub Release
+# 上传 main.js、manifest.json、styles.css
+```
+
+---
+
+## ❓ 常见问题
+
+### 插件无法加载
+
+**问题**：Obsidian 提示插件加载失败
+
+**解决**：
+1. 确认已关闭 Obsidian 的"安全模式"
+2. 检查插件文件是否完整（main.js, manifest.json, styles.css）
+3. 查看控制台错误信息（`Ctrl/Cmd + Shift + I`）
+4. 尝试重启 Obsidian
+
+### 登录失败或超时
+
+**问题**：浏览器打开后无法完成登录
+
+**解决**：
+1. 确认已安装 Playwright：`npx playwright@1.43.1 install`
+2. 检查网络连接，确保能访问 Get笔记 官网
+3. 手动操作登录流程：
+   - 输入手机号
+   - 点击"获取验证码"
+   - 输入验证码
+   - 点击"登录"
+4. 等待 10-15 秒，不要关闭浏览器窗口
+
+### 同步没有新笔记
+
+**问题**：点击同步后提示"新增 0 条笔记"
+
+**可能原因**：
+1. Get笔记 中确实没有新笔记
+2. 笔记已经在之前同步过（增量同步机制）
+3. 同步记录异常
+
+**解决**：
+1. 检查 Get笔记 网页版，确认是否有新内容
+2. 如需重新导入所有笔记，使用"重置同步历史"功能
+
+### Canvas 或 Moments 不显示
+
+**问题**：开启可视化选项后，文件生成但内容为空
+
+**解决**：
+1. 确认已成功导入至少一条笔记
+2. 检查文件路径设置是否正确
+3. 尝试关闭并重新开启可视化选项
+4. 删除旧的 Canvas/Moments 文件后重新同步
+
+### Playwright 安装失败
+
+**问题**：`npx playwright install` 报错
+
+**解决**：
+```bash
+# 方法 1: 使用指定版本
+npx playwright@1.43.1 install --force
+
+# 方法 2: 清除缓存后重装
+npm cache clean --force
+npm install
+npx playwright@1.43.1 install
+
+# 方法 3: 使用镜像（中国大陆）
+export PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/
+npx playwright@1.43.1 install
+```
+
+### 从旧版本升级
+
+如果从 1.x 版本升级到 2.0，附件路径结构已改变：
+
+**选项 A：完全重新导入（推荐）**
+1. 打开插件设置
+2. 点击"重置同步历史"
+3. 删除旧文件夹：`get/memos/` 和 `get picture/`
+4. 重新同步
+
+**选项 B：保留现有笔记**
+1. 正常同步
+2. 新笔记使用新的附件结构
+3. 旧笔记保持旧路径
+4. 结果：混合结构，但不会出错
+
+---
+
+## 🤝 贡献
+
+欢迎任何形式的贡献！这是一个**免费开源**项目，希望能帮助更多使用 Get笔记 和 Obsidian 的朋友。
+
+### 如何贡献
+
+1. **Fork 本仓库**
+2. **创建功能分支**：`git checkout -b feature/AmazingFeature`
+3. **提交更改**：`git commit -m 'Add some AmazingFeature'`
+4. **推送到分支**：`git push origin feature/AmazingFeature`
+5. **提交 Pull Request**
+
+### 贡献指南
+
+- 遵循现有代码风格（使用 `npm run lint` 检查）
+- 添加必要的注释和文档
+- 测试你的更改
+- 提交清晰的 commit 信息
+
+### 报告问题
+
+如果你发现 bug 或有功能建议：
+
+1. 在 [Issues](https://github.com/你的用户名/get-to-obsidian/issues) 中搜索是否已有相关问题
+2. 如果没有，创建新 Issue，请包含：
+   - 问题描述
+   - 复现步骤
+   - 期望行为
+   - 实际行为
+   - 环境信息（Obsidian 版本、操作系统等）
+
+---
+
+## 📄 许可证
+
+本项目采用 [MIT License](LICENSE.md) 开源许可证。
+
+你可以自由地：
+- ✅ 使用本软件用于个人或商业用途
+- ✅ 修改源代码
+- ✅ 分发本软件
+- ✅ 私人使用
+
+但需要：
+- 📋 在分发时包含原始许可证和版权声明
+- 📋 不对软件提供任何担保
+
+---
+
+## 💖 致谢
+
+- 感谢 [Obsidian](https://obsidian.md/) 提供强大的知识管理平台
+- 感谢 [Get笔记](https://www.biji.com/) 的优质笔记服务
+- 感谢原始项目 [jia6y/get-to-obsidian](https://github.com/jia6y/get-to-obsidian)
+- 感谢所有贡献者和使用者的支持
+
+---
+
+## 📮 联系方式
+
+- **问题反馈**：[GitHub Issues](https://github.com/你的用户名/get-to-obsidian/issues)
+- **功能建议**：[GitHub Discussions](https://github.com/你的用户名/get-to-obsidian/discussions)
+
+---
+
+<div align="center">
+
+**如果这个插件对你有帮助，请给个 ⭐️ Star 支持一下！**
+
+**本项目完全免费开源，欢迎自用和分享！**
+
+Made with ❤️ by Community
+
+</div>

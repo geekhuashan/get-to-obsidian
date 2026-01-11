@@ -2,22 +2,22 @@ import { App, Modal, Plugin, Setting, Notice, ButtonComponent,  } from 'obsidian
 
 import { createExpOpt } from './common';
 import { AuthUI } from './auth_ui';
-import { FlomoImporter } from '../flomo/importer';
-import { FlomoExporter } from '../flomo/exporter';
-import type FlomoImporterPlugin from '../../main';
+import { GetImporter } from '../get/importer';
+import { GetExporter } from '../get/exporter';
+import type GetImporterPlugin from '../../main';
 
 import * as path from 'path';
 import * as os from 'os';
 import *  as fs from 'fs-extra';
 
-import { AUTH_FILE, DOWNLOAD_FILE } from '../flomo/const'
+import { AUTH_FILE, DOWNLOAD_FILE } from '../get/const'
 
 export class MainUI extends Modal {
 
-    plugin: FlomoImporterPlugin;
+    plugin: GetImporterPlugin;
     rawPath: string;
 
-    constructor(app: App, plugin: FlomoImporterPlugin) {
+    constructor(app: App, plugin: GetImporterPlugin) {
         super(app);
         this.plugin = plugin;
         this.rawPath = "";
@@ -28,8 +28,8 @@ export class MainUI extends Modal {
         try {
             if (isAuthFileExist) {
                 btn.setDisabled(true);
-                btn.setButtonText("Exporting from Flomo ...");
-                const exportResult = await (new FlomoExporter().export());
+                btn.setButtonText("正在从 Get笔记 导出...");
+                const exportResult = await (new GetExporter().export());
                 
                 btn.setDisabled(false);
                 if (exportResult[0] == true) {
@@ -47,12 +47,12 @@ export class MainUI extends Modal {
         } catch (err) {
             console.log(err);
             btn.setButtonText("Auto Sync 🤗");
-            new Notice(`Flomo Sync Error. Details:\n${err}`);
+            new Notice(`Get笔记 同步错误. 详情:\n${err}`);
         }
     }
 
     async onSubmit(): Promise<void> {
-        const targetMemoLocation = this.plugin.settings.flomoTarget + "/" +
+        const targetMemoLocation = this.plugin.settings.getTarget + "/" +
             this.plugin.settings.memoTarget;
 
         const res = await this.app.vault.adapter.exists(targetMemoLocation);
@@ -68,7 +68,7 @@ export class MainUI extends Modal {
             // 将已同步的备忘录ID传递给导入器，用于增量同步
             config["syncedMemoIds"] = this.plugin.settings.syncedMemoIds || [];
 
-            const flomo = await (new FlomoImporter(this.app, config)).import();
+            const flomo = await (new GetImporter(this.app, config)).import();
 
             // 保存新同步的备忘录ID
             if (flomo.syncedMemoIds && flomo.syncedMemoIds.length > 0) {
@@ -76,14 +76,14 @@ export class MainUI extends Modal {
                 await this.plugin.saveSettings();
             }
 
-            new Notice(`🎉 Import Completed.\nTotal: ${flomo.memos.length} memos, New: ${flomo.newMemosCount || 0} memos`)
+            new Notice(`🎉 导入完成.\n总数: ${flomo.memos.length} 条笔记, 新增: ${flomo.newMemosCount || 0} 条笔记`)
             this.rawPath = "";
 
 
         } catch (err) {
             this.rawPath = "";
             console.log(err);
-            new Notice(`Flomo Importer Error. Details:\n${err}`);
+            new Notice(`Get笔记 导入错误. 详情:\n${err}`);
         }
 
     }
@@ -92,63 +92,87 @@ export class MainUI extends Modal {
 
         const { contentEl } = this;
         contentEl.empty();
-        contentEl.createEl("h3", { text: "Flomo Importer" });
 
-        const fileLocContol: HTMLInputElement = contentEl.createEl("input", { type: "file", cls: "uploadbox" })
+        // 标题区域
+        const headerEl = contentEl.createDiv({ cls: "get-importer-header" });
+        headerEl.createEl("h2", { text: "📓 Get笔记 Importer" });
+        headerEl.createEl("p", {
+            text: "将 Get笔记 同步到 Obsidian",
+            cls: "get-importer-subtitle"
+        });
+
+        // 手动导入区域
+        const manualImportSection = contentEl.createDiv({ cls: "get-importer-section" });
+        manualImportSection.createEl("h3", { text: "📁 手动导入" });
+        manualImportSection.createEl("p", {
+            text: "上传从 Get笔记 导出的 ZIP 文件",
+            cls: "setting-item-description"
+        });
+
+        const fileLocContol: HTMLInputElement = manualImportSection.createEl("input", {
+            type: "file",
+            cls: "uploadbox"
+        });
         fileLocContol.setAttr("accept", ".zip");
         fileLocContol.onchange = (ev) => {
             this.rawPath = (ev.currentTarget as HTMLInputElement).files[0]["path"];
             console.log(this.rawPath)
         };
 
-        contentEl.createEl("br");
+        // 基本设置区域
+        const basicSettingsSection = contentEl.createDiv({ cls: "get-importer-section" });
+        basicSettingsSection.createEl("h3", { text: "⚙️ 基本设置" });
 
-        new Setting(contentEl)
-            .setName('Flomo Home')
-            .setDesc('set the flomo home location')
+        new Setting(basicSettingsSection)
+            .setName('Get笔记 Home')
+            .setDesc('设置 Get笔记 主目录位置')
             .addText(text => text
-                .setPlaceholder('flomo')
-                .setValue(this.plugin.settings.flomoTarget)
+                .setPlaceholder('get')
+                .setValue(this.plugin.settings.getTarget)
                 .onChange(async (value) => {
-                    this.plugin.settings.flomoTarget = value;
+                    this.plugin.settings.getTarget = value;
                 }));
 
-        new Setting(contentEl)
-            .setName('Memo Home')
-            .setDesc('your memos are at: FlomoHome / MemoHome')
+        new Setting(basicSettingsSection)
+            .setName('笔记目录')
+            .setDesc('笔记存放位置: Get笔记Home / 笔记目录')
             .addText((text) => text
-                .setPlaceholder('memos')
+                .setPlaceholder('notes')
                 .setValue(this.plugin.settings.memoTarget)
                 .onChange(async (value) => {
                     this.plugin.settings.memoTarget = value;
                 }));
 
-        new Setting(contentEl)
+        // 可视化设置区域
+        const visualSection = contentEl.createDiv({ cls: "get-importer-section" });
+        visualSection.createEl("h3", { text: "🎨 可视化设置" });
+
+        new Setting(visualSection)
             .setName('Moments')
-            .setDesc('set moments style: flow(default) | skip')
+            .setDesc('生成 Moments 时间线文件')
             .addDropdown((drp) => {
-                drp.addOption("copy_with_link", "Generate Moments")
-                    .addOption("skip", "Skip Moments")
+                drp.addOption("copy_with_link", "生成 Moments")
+                    .addOption("skip", "跳过 Moments")
                     .setValue(this.plugin.settings.optionsMoments)
                     .onChange(async (value) => {
                         this.plugin.settings.optionsMoments = value;
                     })
             })
 
-        new Setting(contentEl)
+        new Setting(visualSection)
             .setName('Canvas')
-            .setDesc('set canvas options: link | content(default) | skip')
+            .setDesc('生成 Canvas 画布文件')
             .addDropdown((drp) => {
-                drp.addOption("copy_with_link", "Generate Canvas")
-                    .addOption("copy_with_content", "Generate Canvas (with content)")
-                    .addOption("skip", "Skip Canvas")
+                drp.addOption("copy_with_link", "生成 Canvas（链接模式）")
+                    .addOption("copy_with_content", "生成 Canvas（内容模式）")
+                    .addOption("skip", "跳过 Canvas")
                     .setValue(this.plugin.settings.optionsCanvas)
                     .onChange(async (value) => {
                         this.plugin.settings.optionsCanvas = value;
                     })
             });
 
-        const canvsOptionBlock: HTMLDivElement = contentEl.createEl("div", { cls: "canvasOptionBlock" });
+        const canvsOptionBlock: HTMLDivElement = visualSection.createEl("div", { cls: "canvasOptionBlock" });
 
         const canvsOptionLabelL: HTMLLabelElement = canvsOptionBlock.createEl("label");
         const canvsOptionLabelM: HTMLLabelElement = canvsOptionBlock.createEl("label");
@@ -189,9 +213,11 @@ export class MainUI extends Modal {
             this.plugin.settings.canvasSize = "S";
         };
 
-        new Setting(contentEl).setName('Experimental Options').setDesc('set experimental options')
+        // 高级选项区域
+        const advancedSection = contentEl.createDiv({ cls: "get-importer-section" });
+        advancedSection.createEl("h3", { text: "🔬 高级选项" });
 
-        const allowBiLink = createExpOpt(contentEl, "Convert bidirectonal link. example: [[abc]]")
+        const allowBiLink = createExpOpt(advancedSection, "转换双向链接（支持 [[链接]] 语法）")
 
         allowBiLink.checked = this.plugin.settings.expOptionAllowbilink;
         allowBiLink.onchange = (ev) => {
@@ -199,23 +225,25 @@ export class MainUI extends Modal {
         };
 
 
-        const mergeByDate = createExpOpt(contentEl, "Merge memos by date")
+        const mergeByDate = createExpOpt(advancedSection, "按日期合并笔记（同一天的笔记合并到一个文件）")
 
         mergeByDate.checked = this.plugin.settings.mergeByDate;
         mergeByDate.onchange = (ev) => {
             this.plugin.settings.mergeByDate = (ev.currentTarget as HTMLInputElement).checked;
         };
 
-        new Setting(contentEl).setName('Auto Sync Options').setDesc('set auto sync options')
+        // 自动同步区域
+        const autoSyncSection = contentEl.createDiv({ cls: "get-importer-section" });
+        autoSyncSection.createEl("h3", { text: "🔄 自动同步" });
 
-        const autoSyncOnStartup = createExpOpt(contentEl, "Auto sync when Obsidian starts")
+        const autoSyncOnStartup = createExpOpt(autoSyncSection, "启动 Obsidian 时自动同步")
 
         autoSyncOnStartup.checked = this.plugin.settings.autoSyncOnStartup;
         autoSyncOnStartup.onchange = (ev) => {
             this.plugin.settings.autoSyncOnStartup = (ev.currentTarget as HTMLInputElement).checked;
         };
 
-        const autoSyncInterval = createExpOpt(contentEl, "Auto sync every hour")
+        const autoSyncInterval = createExpOpt(autoSyncSection, "每小时自动同步一次")
 
         autoSyncInterval.checked = this.plugin.settings.autoSyncInterval;
         autoSyncInterval.onchange = (ev) => {
@@ -233,44 +261,50 @@ export class MainUI extends Modal {
         if (this.plugin.settings.lastSyncTime) {
             const lastSyncDate = new Date(this.plugin.settings.lastSyncTime);
             const syncedCount = this.plugin.settings.syncedMemoIds?.length || 0;
-            contentEl.createEl("div", {
-                text: `Last sync: ${lastSyncDate.toLocaleString()}`,
-                cls: "last-sync-time"
+
+            const syncStatusEl = autoSyncSection.createDiv({ cls: "sync-status-box" });
+            syncStatusEl.createEl("div", {
+                text: `📅 上次同步: ${lastSyncDate.toLocaleString()}`,
+                cls: "sync-info-item"
             });
-            contentEl.createEl("div", {
-                text: `Synced memos: ${syncedCount}`,
-                cls: "synced-count"
+            syncStatusEl.createEl("div", {
+                text: `📝 已同步笔记: ${syncedCount} 条`,
+                cls: "sync-info-item"
             });
         }
 
+        // 数据管理区域
+        const dataSection = contentEl.createDiv({ cls: "get-importer-section" });
+        dataSection.createEl("h3", { text: "🗃️ 数据管理" });
+
         // 添加重置同步记录按钮
-        new Setting(contentEl)
-            .setName('Reset Sync History')
-            .setDesc('Clear all synced memo IDs to re-import all memos (useful after changing attachment paths)')
+        new Setting(dataSection)
+            .setName('重置同步历史')
+            .setDesc('清除所有已同步的笔记记录，下次同步时将重新导入所有笔记')
             .addButton((btn) => {
-                btn.setButtonText("Reset Sync History")
+                btn.setButtonText("重置同步历史")
                     .setWarning()
                     .onClick(async () => {
-                        const flomoTarget = this.plugin.settings.flomoTarget || "flomo";
-                        const memoTarget = this.plugin.settings.memoTarget || "memos";
+                        const getTarget = this.plugin.settings.getTarget || "get";
+                        const memoTarget = this.plugin.settings.memoTarget || "notes";
                         const confirmed = confirm(
-                            `Are you sure you want to reset sync history?\n\n` +
-                            `This will clear ${this.plugin.settings.syncedMemoIds?.length || 0} synced memo records.\n` +
-                            `Next sync will re-import all memos from Flomo.\n\n` +
-                            `⚠️  IMPORTANT: Before syncing again, you should:\n` +
-                            `1. Delete the old memos folder: ${flomoTarget}/${memoTarget}/\n` +
-                            `2. Delete the old attachments folder if path changed\n\n` +
-                            `Otherwise, existing files will be OVERWRITTEN!`
+                            `确定要重置同步历史吗？\n\n` +
+                            `这将清除 ${this.plugin.settings.syncedMemoIds?.length || 0} 条已同步的笔记记录。\n` +
+                            `下次同步时将重新导入所有 Get笔记。\n\n` +
+                            `⚠️  重要提示: 在再次同步之前，您应该：\n` +
+                            `1. 删除旧的笔记目录: ${getTarget}/${memoTarget}/\n` +
+                            `2. 如果附件路径已更改，删除旧的附件目录\n\n` +
+                            `否则，现有文件将被覆盖！`
                         );
                         if (confirmed) {
                             this.plugin.settings.syncedMemoIds = [];
                             this.plugin.settings.lastSyncTime = 0;
                             await this.plugin.saveSettings();
                             new Notice(
-                                `Sync history has been reset.\n\n` +
-                                `⚠️  Remember to delete old folders before next sync:\n` +
-                                `- ${flomoTarget}/${memoTarget}/\n` +
-                                `- ${flomoTarget}/flomo picture/ (if exists)`,
+                                `同步历史已重置。\n\n` +
+                                `⚠️  记得在下次同步前删除旧目录:\n` +
+                                `- ${getTarget}/${memoTarget}/\n` +
+                                `- ${getTarget}/get attachment/ (如果存在)`,
                                 10000
                             );
                             this.close();
@@ -279,38 +313,38 @@ export class MainUI extends Modal {
                     })
             });
 
-        new Setting(contentEl)
+        // 操作按钮区域
+        const actionSection = contentEl.createDiv({ cls: "get-importer-actions" });
+
+        new Setting(actionSection)
             .addButton((btn) => {
-                btn.setButtonText("Cancel")
-                    .setCta()
+                btn.setButtonText("取消")
                     .onClick(async () => {
                         await this.plugin.saveSettings();
                         this.close();
                     })
             })
             .addButton((btn) => {
-                btn.setButtonText("Import")
+                btn.setButtonText("手动导入")
                     .setCta()
                     .onClick(async () => {
                         if (this.rawPath != "") {
                             await this.plugin.saveSettings();
                             await this.onSubmit();
-                            //const manualSyncUI: Modal = new ManualSyncUI(this.app, this.plugin);
-                            //manualSyncUI.open();
                             this.close();
                         }
                         else {
-                            new Notice("No File Selected.")
+                            new Notice("请先选择 ZIP 文件")
                         }
                     })
             })
             .addButton((btn) => {
-                btn.setButtonText("Auto Sync 🤗")
+                btn.setButtonText("自动同步 🚀")
                     .setCta()
+                    .setClass("sync-btn-primary")
                     .onClick(async () => {
                         await this.plugin.saveSettings();
                         await this.onSync(btn);
-                        //this.close();
                     })
             });   
 

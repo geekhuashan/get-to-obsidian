@@ -1,14 +1,14 @@
 import { App, Modal, Plugin, Setting, Notice } from 'obsidian';
 import * as fs from 'fs-extra';
-import type FlomoImporterPlugin from '../../main';
+import type GetImporterPlugin from '../../main';
 import { createExpOpt } from './common';
 
 
 export class ManualSyncUI extends Modal {
-    plugin: FlomoImporterPlugin;
+    plugin: GetImporterPlugin;
     rawPath: string;
 
-    constructor(app: App, plugin: FlomoImporterPlugin) {
+    constructor(app: App, plugin: GetImporterPlugin) {
         super(app);
         this.plugin = plugin;
         this.rawPath = "";
@@ -21,7 +21,7 @@ export class ManualSyncUI extends Modal {
         contentEl.createEl("h3", { text: "AdHoc Import" });
 
         // const ctrlUploadBox = new Setting(contentEl)
-        // ctrlUploadBox.setName("Select flomo@<uid>-<date>.zip");
+        // ctrlUploadBox.setName("Select get@<uid>-<date>.zip");
         const fileLocContol: HTMLInputElement = contentEl.createEl("input", { type: "file", cls: "uploadbox" })
         fileLocContol.setAttr("accept", ".zip");
         fileLocContol.onchange = (ev) => {

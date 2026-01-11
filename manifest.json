@@ -1,9 +1,9 @@
 {
-	"id": "flomo-importer-sync",
-	"name": "Flomo Importer Dev",
+	"id": "get-importer-sync",
+	"name": "Get笔记 Importer",
 	"version": "2.0.0",
 	"minAppVersion": "1.5.0",
-	"description": "Make Flomo Memos to Obsidian Notes",
+	"description": "Import Get笔记 Notes to Obsidian",
 	"author": "Hua Shan",
 	"authorUrl": "https://github.com/geekhuashan",
 	"isDesktopOnly": true

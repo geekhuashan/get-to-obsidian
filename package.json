@@ -1,7 +1,7 @@
 {
-  "name": "flomo-importer-plugin",
+  "name": "get-importer-plugin",
   "version": "2.0.0",
-  "description": "Make Flomo Memos to Obsidian Notes",
+  "description": "Import Get笔记 Notes to Obsidian",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

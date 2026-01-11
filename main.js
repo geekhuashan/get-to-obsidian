@@ -1221,7 +1221,7 @@ var require_copy = __commonJS({
     var mkdirs = require_mkdirs().mkdirs;
     var pathExists = require_path_exists().pathExists;
     var utimesMillis = require_utimes().utimesMillis;
-    var stat = require_stat();
+    var stat2 = require_stat();
     function copy(src, dest, opts, cb) {
       if (typeof opts === "function" && !cb) {
         cb = opts;
@@ -1237,11 +1237,11 @@ var require_copy = __commonJS({
       if (opts.preserveTimestamps && process.arch === "ia32") {
         process.emitWarning("Using the preserveTimestamps option in 32-bit node is not recommended;\n\n	see https://github.com/jprichardson/node-fs-extra/issues/269", "Warning", "fs-extra-WARN0001");
       }
-      stat.checkPaths(src, dest, "copy", opts, (err, stats) => {
+      stat2.checkPaths(src, dest, "copy", opts, (err, stats) => {
         if (err)
           return cb(err);
         const { srcStat, destStat } = stats;
-        stat.checkParentPaths(src, srcStat, dest, "copy", (err2) => {
+        stat2.checkParentPaths(src, srcStat, dest, "copy", (err2) => {
           if (err2)
             return cb(err2);
           runFilter(src, dest, opts, (err3, include) => {
@@ -1274,8 +1274,8 @@ var require_copy = __commonJS({
       Promise.resolve(opts.filter(src, dest)).then((include) => cb(null, include), (error) => cb(error));
     }
     function getStats(destStat, src, dest, opts, cb) {
-      const stat2 = opts.dereference ? fs5.stat : fs5.lstat;
-      stat2(src, (err, srcStat) => {
+      const stat3 = opts.dereference ? fs5.stat : fs5.lstat;
+      stat3(src, (err, srcStat) => {
         if (err)
           return cb(err);
         if (srcStat.isDirectory())
@@ -1387,7 +1387,7 @@ var require_copy = __commonJS({
           return cb(err);
         if (!include)
           return copyDirItems(items, src, dest, opts, cb);
-        stat.checkPaths(srcItem, destItem, "copy", opts, (err2, stats) => {
+        stat2.checkPaths(srcItem, destItem, "copy", opts, (err2, stats) => {
           if (err2)
             return cb(err2);
           const { destStat } = stats;
@@ -1418,10 +1418,10 @@ var require_copy = __commonJS({
             if (opts.dereference) {
               resolvedDest = path3.resolve(process.cwd(), resolvedDest);
             }
-            if (stat.isSrcSubdir(resolvedSrc, resolvedDest)) {
+            if (stat2.isSrcSubdir(resolvedSrc, resolvedDest)) {
               return cb(new Error(`Cannot copy '${resolvedSrc}' to a subdirectory of itself, '${resolvedDest}'.`));
             }
-            if (stat.isSrcSubdir(resolvedDest, resolvedSrc)) {
+            if (stat2.isSrcSubdir(resolvedDest, resolvedSrc)) {
               return cb(new Error(`Cannot overwrite '${resolvedDest}' with '${resolvedSrc}'.`));
             }
             return copyLink(resolvedSrc, dest, cb);
@@ -1448,7 +1448,7 @@ var require_copy_sync = __commonJS({
     var path3 = require("path");
     var mkdirsSync = require_mkdirs().mkdirsSync;
     var utimesMillisSync = require_utimes().utimesMillisSync;
-    var stat = require_stat();
+    var stat2 = require_stat();
     function copySync(src, dest, opts) {
       if (typeof opts === "function") {
         opts = { filter: opts };
@@ -1459,8 +1459,8 @@ var require_copy_sync = __commonJS({
       if (opts.preserveTimestamps && process.arch === "ia32") {
         process.emitWarning("Using the preserveTimestamps option in 32-bit node is not recommended;\n\n	see https://github.com/jprichardson/node-fs-extra/issues/269", "Warning", "fs-extra-WARN0002");
       }
-      const { srcStat, destStat } = stat.checkPathsSync(src, dest, "copy", opts);
-      stat.checkParentPathsSync(src, srcStat, dest, "copy");
+      const { srcStat, destStat } = stat2.checkPathsSync(src, dest, "copy", opts);
+      stat2.checkParentPathsSync(src, srcStat, dest, "copy");
       if (opts.filter && !opts.filter(src, dest))
         return;
       const destParent = path3.dirname(dest);
@@ -1538,7 +1538,7 @@ var require_copy_sync = __commonJS({
       const destItem = path3.join(dest, item);
       if (opts.filter && !opts.filter(srcItem, destItem))
         return;
-      const { destStat } = stat.checkPathsSync(srcItem, destItem, "copy", opts);
+      const { destStat } = stat2.checkPathsSync(srcItem, destItem, "copy", opts);
       return getStats(destStat, srcItem, destItem, opts);
     }
     function onLink(destStat, src, dest, opts) {
@@ -1560,10 +1560,10 @@ var require_copy_sync = __commonJS({
         if (opts.dereference) {
           resolvedDest = path3.resolve(process.cwd(), resolvedDest);
         }
-        if (stat.isSrcSubdir(resolvedSrc, resolvedDest)) {
+        if (stat2.isSrcSubdir(resolvedSrc, resolvedDest)) {
           throw new Error(`Cannot copy '${resolvedSrc}' to a subdirectory of itself, '${resolvedDest}'.`);
         }
-        if (stat.isSrcSubdir(resolvedDest, resolvedSrc)) {
+        if (stat2.isSrcSubdir(resolvedDest, resolvedSrc)) {
           throw new Error(`Cannot overwrite '${resolvedDest}' with '${resolvedSrc}'.`);
         }
         return copyLink(resolvedSrc, dest);
@@ -2216,7 +2216,7 @@ var require_move = __commonJS({
     var remove3 = require_remove().remove;
     var mkdirp2 = require_mkdirs().mkdirp;
     var pathExists = require_path_exists().pathExists;
-    var stat = require_stat();
+    var stat2 = require_stat();
     function move(src, dest, opts, cb) {
       if (typeof opts === "function") {
         cb = opts;
@@ -2224,11 +2224,11 @@ var require_move = __commonJS({
       }
       opts = opts || {};
       const overwrite = opts.overwrite || opts.clobber || false;
-      stat.checkPaths(src, dest, "move", opts, (err, stats) => {
+      stat2.checkPaths(src, dest, "move", opts, (err, stats) => {
         if (err)
           return cb(err);
         const { srcStat, isChangingCase = false } = stats;
-        stat.checkParentPaths(src, srcStat, dest, "move", (err2) => {
+        stat2.checkParentPaths(src, srcStat, dest, "move", (err2) => {
           if (err2)
             return cb(err2);
           if (isParentRoot(dest))
@@ -2297,12 +2297,12 @@ var require_move_sync = __commonJS({
     var copySync = require_copy2().copySync;
     var removeSync = require_remove().removeSync;
     var mkdirpSync2 = require_mkdirs().mkdirpSync;
-    var stat = require_stat();
+    var stat2 = require_stat();
     function moveSync(src, dest, opts) {
       opts = opts || {};
       const overwrite = opts.overwrite || opts.clobber || false;
-      const { srcStat, isChangingCase = false } = stat.checkPathsSync(src, dest, "move", opts);
-      stat.checkParentPathsSync(src, srcStat, dest, "move");
+      const { srcStat, isChangingCase = false } = stat2.checkPathsSync(src, dest, "move", opts);
+      stat2.checkParentPathsSync(src, srcStat, dest, "move");
       if (!isParentRoot(dest))
         mkdirpSync2(path3.dirname(dest));
       return doRename(src, dest, overwrite, isChangingCase);
@@ -20514,7 +20514,7 @@ Run "${buildPlaywrightCLICommand(sdkLanguage, "install " + name)}"` : "";
         if (!executable.directory)
           return;
         const markerFile = _path.default.join(executable.directory, "DEPENDENCIES_VALIDATED");
-        if (await fs5.promises.stat(markerFile).then((stat) => Date.now() - stat.mtime.getTime() < kMaximumReValidationPeriod).catch(() => false))
+        if (await fs5.promises.stat(markerFile).then((stat2) => Date.now() - stat2.mtime.getTime() < kMaximumReValidationPeriod).catch(() => false))
           return;
         _debugLogger.debugLogger.log("install", `validating host requirements for "${executable.name}"`);
         try {
@@ -70079,7 +70079,7 @@ var require_make_dir2 = __commonJS({
       checkPath(input);
       opts = Object.assign({}, defaults, opts);
       const mkdir2 = pify(opts.fs.mkdir);
-      const stat = pify(opts.fs.stat);
+      const stat2 = pify(opts.fs.stat);
       const make = (pth) => {
         return mkdir2(pth, opts.mode).then(() => pth).catch((err) => {
           if (err.code === "ENOENT") {
@@ -70088,7 +70088,7 @@ var require_make_dir2 = __commonJS({
             }
             return make(path3.dirname(pth)).then(() => make(pth));
           }
-          return stat(pth).then((stats) => stats.isDirectory() ? pth : Promise.reject()).catch(() => {
+          return stat2(pth).then((stats) => stats.isDirectory() ? pth : Promise.reject()).catch(() => {
             throw err;
           });
         });
@@ -76008,7 +76008,7 @@ var require_dist = __commonJS({
 // main.ts
 var main_exports = {};
 __export(main_exports, {
-  default: () => FlomoImporterPlugin
+  default: () => GetImporterPlugin
 });
 module.exports = __toCommonJS(main_exports);
 var import_obsidian4 = require("obsidian");
@@ -76048,7 +76048,7 @@ var MessageUI = class extends import_obsidian.Modal {
   }
 };
 
-// lib/flomo/auth.ts
+// lib/get/auth.ts
 var fs = __toESM(require_lib());
 
 // node_modules/playwright-core/index.mjs
@@ -76063,37 +76063,74 @@ var request = import_index.default.request;
 var _electron = import_index.default._electron;
 var _android = import_index.default._android;
 
-// lib/flomo/const.ts
+// lib/get/const.ts
 var path = __toESM(require("path"));
 var os = __toESM(require("os"));
-var FLOMO_CACHE_LOC = path.join(os.homedir(), "/.flomo/cache/");
-var FLOMO_PLAYWRIGHT_CACHE_LOC = path.join(os.homedir(), "/.flomo/cache/playwright/");
-var AUTH_FILE = FLOMO_PLAYWRIGHT_CACHE_LOC + "flomo_auth.json";
-var DOWNLOAD_FILE = FLOMO_PLAYWRIGHT_CACHE_LOC + "flomo_export.zip";
+var GET_CACHE_LOC = path.join(os.homedir(), "/.get/cache/");
+var GET_PLAYWRIGHT_CACHE_LOC = path.join(os.homedir(), "/.get/cache/playwright/");
+var AUTH_FILE = GET_PLAYWRIGHT_CACHE_LOC + "get_auth.json";
+var DOWNLOAD_FILE = GET_PLAYWRIGHT_CACHE_LOC + "get_export.zip";
+var GET_LOGIN_URL = "https://www.biji.com/";
+var GET_EXPORT_URL = "https://www.biji.com/syncNote";
 
-// lib/flomo/auth.ts
-var FlomoAuth = class {
+// lib/get/auth.ts
+var GetAuth = class {
   constructor() {
-    fs.mkdirpSync(FLOMO_PLAYWRIGHT_CACHE_LOC);
+    fs.mkdirpSync(GET_PLAYWRIGHT_CACHE_LOC);
   }
-  async auth(uid, passwd) {
+  async requestSmsCode(phone) {
+    let browser;
     try {
-      const browser = await chromium.launch();
+      browser = await chromium.launch({ headless: false });
       const context = await browser.newContext(devices["Desktop Chrome"]);
       const page = await context.newPage();
-      await page.goto("https://v.flomoapp.com/login");
-      await page.getByPlaceholder("\u624B\u673A\u53F7 / \u90AE\u7BB1").fill(uid);
-      await page.getByPlaceholder("\u5BC6\u7801").fill(passwd);
-      await page.getByRole("button", { name: "\u767B\u5F55" }).click();
-      await page.waitForURL("https://v.flomoapp.com/mine");
+      console.log("\u6B63\u5728\u6253\u5F00 Get\u7B14\u8BB0 \u767B\u5F55\u9875\u9762...");
+      await page.goto(GET_LOGIN_URL);
+      await page.waitForLoadState("networkidle");
+      console.log("\u9875\u9762\u52A0\u8F7D\u5B8C\u6210");
+      await page.waitForTimeout(2e3);
+      console.log("\u6B63\u5728\u586B\u5199\u624B\u673A\u53F7...");
+      await page.getByPlaceholder("\u8BF7\u8F93\u5165\u624B\u673A\u53F7").fill(phone);
+      console.log("\u624B\u673A\u53F7\u5DF2\u586B\u5199:", phone);
+      await page.waitForTimeout(1e3);
+      console.log('\u9A8C\u8BC1\u7801\u5DF2\u51C6\u5907\u53D1\u9001\uFF0C\u8BF7\u5728\u6D4F\u89C8\u5668\u4E2D\u624B\u52A8\u70B9\u51FB"\u83B7\u53D6\u9A8C\u8BC1\u7801"\u6216"\u53D1\u9001\u9A8C\u8BC1\u7801"\u6309\u94AE');
+      return [true, "Please click the verification code button in the browser manually", browser, context, page];
+    } catch (error) {
+      console.log("\u53D1\u751F\u9519\u8BEF:", error);
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (e) {
+        }
+      }
+      return [false, error.message || error];
+    }
+  }
+  async waitForManualLogin(browser, context, page) {
+    try {
+      console.log("\u7B49\u5F85\u7528\u6237\u624B\u52A8\u8F93\u5165\u9A8C\u8BC1\u7801\u5E76\u70B9\u51FB\u767B\u5F55\u6309\u94AE...");
+      await page.waitForTimeout(1e4);
+      try {
+        await page.waitForURL("**/note**", { timeout: 3e4 });
+        console.log("\u68C0\u6D4B\u5230\u767B\u5F55\u6210\u529F\uFF0CURL\u5DF2\u8DF3\u8F6C\u5230\u7B14\u8BB0\u9875\u9762");
+      } catch (e) {
+        console.warn("\u672A\u80FD\u68C0\u6D4B\u5230URL\u8DF3\u8F6C\uFF0C\u4F46\u5C06\u7EE7\u7EED\u5C1D\u8BD5\u4FDD\u5B58\u8BA4\u8BC1\u72B6\u6001");
+      }
       await page.context().storageState({ path: AUTH_FILE });
       await context.close();
       await browser.close();
       return [true, ""];
     } catch (error) {
       console.log(error);
-      return [false, error];
+      try {
+        await browser.close();
+      } catch (e) {
+      }
+      return [false, error.message || error];
     }
+  }
+  async auth(uid, passwd) {
+    return [false, "Get\u7B14\u8BB0 only supports SMS verification code login. Please use requestSmsCode() and completeAuth() instead."];
   }
 };
 
@@ -76102,55 +76139,78 @@ var AuthUI = class extends import_obsidian2.Modal {
   constructor(app, plugin) {
     super(app);
     __publicField(this, "plugin");
-    __publicField(this, "uid");
-    __publicField(this, "passwd");
+    __publicField(this, "phone");
+    __publicField(this, "browser", null);
+    __publicField(this, "context", null);
+    __publicField(this, "page", null);
     this.plugin = plugin;
-    this.uid = "";
-    this.passwd = "";
+    this.phone = "";
   }
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h3", { text: "Connecting to Flomo" });
-    new import_obsidian2.Setting(contentEl).setName("Flomo Signin").setDesc("enter your flomo credential").addText((text) => text.setPlaceholder("Your userid").onChange(async (value) => {
-      this.uid = value;
-    })).controlEl.createEl("input", {
-      "type": "password",
-      "placeholder": "Your password please"
-    }).onchange = (ev) => {
-      this.passwd = ev.target.value;
-    };
-    new import_obsidian2.Setting(contentEl).setDesc("Prerequisite: \u{1F449} npx playwright@1.43.1 install \u{1F448}").addButton((btn) => {
-      btn.setButtonText("Cancel").setCta().onClick(async () => {
-        await this.plugin.saveSettings();
+    contentEl.createEl("h3", { text: "\u8FDE\u63A5\u5230 Get\u7B14\u8BB0" });
+    new import_obsidian2.Setting(contentEl).setName("\u624B\u673A\u53F7\u7801").setDesc("\u8BF7\u8F93\u5165\u60A8\u7684 Get\u7B14\u8BB0 \u624B\u673A\u53F7").addText((text) => text.setPlaceholder("\u8BF7\u8F93\u5165\u624B\u673A\u53F7").onChange(async (value) => {
+      this.phone = value;
+    }));
+    new import_obsidian2.Setting(contentEl).setDesc("\u524D\u7F6E\u6761\u4EF6: npx playwright@1.43.1 install").addButton((btn) => {
+      btn.setButtonText("\u53D6\u6D88").onClick(async () => {
+        await this.cleanup();
         this.close();
       });
     }).addButton((btn) => {
-      btn.setButtonText("Authenticate").setCta().onClick(async () => {
-        if (this.uid == "" || this.passwd == "") {
-          new import_obsidian2.Notice("Please Enter Your Flomo Username & Password.");
-        } else {
-          await this.plugin.saveSettings();
-          btn.setButtonText("Authenticating...");
-          btn.setDisabled(true);
-          const authResult = await new FlomoAuth().auth(this.uid, this.passwd);
-          btn.setDisabled(false);
-          btn.setButtonText("Authenticate");
-          if (authResult[0] == true) {
-            new MessageUI(this.app, "\u{1F917} Sign-in was successful.").open();
+      btn.setButtonText("\u53D1\u9001\u9A8C\u8BC1\u7801").setCta().onClick(async () => {
+        if (this.phone === "" || this.phone.length !== 11) {
+          new import_obsidian2.Notice("\u8BF7\u8F93\u5165\u6B63\u786E\u7684\u624B\u673A\u53F7\u7801\uFF0811\u4F4D\uFF09");
+          return;
+        }
+        btn.setButtonText("\u53D1\u9001\u4E2D...");
+        btn.setDisabled(true);
+        const auth = new GetAuth();
+        const result = await auth.requestSmsCode(this.phone);
+        if (result[0]) {
+          this.browser = result[2];
+          this.context = result[3];
+          this.page = result[4];
+          new import_obsidian2.Notice("\u8BF7\u5728\u6D4F\u89C8\u5668\u4E2D\u624B\u52A8\u70B9\u51FB'\u83B7\u53D6\u9A8C\u8BC1\u7801'\uFF0C\u8F93\u5165\u9A8C\u8BC1\u7801\u5E76\u70B9\u51FB'\u767B\u5F55'\u6309\u94AE", 1e4);
+          btn.setButtonText("\u7B49\u5F85\u767B\u5F55\u4E2D...");
+          const loginResult = await auth.waitForManualLogin(this.browser, this.context, this.page);
+          if (loginResult[0]) {
+            new MessageUI(this.app, "\u{1F917} \u767B\u5F55\u6210\u529F\uFF01").open();
             this.close();
           } else {
-            new MessageUI(this.app, "\u{1F97A} Sign-in was failed.").open();
-            new import_obsidian2.Notice(`Flomo Sign-in was failed. Details:
-${authResult[1]}`);
+            new import_obsidian2.Notice(`\u767B\u5F55\u5931\u8D25: ${loginResult[1]}`);
+            btn.setButtonText("\u53D1\u9001\u9A8C\u8BC1\u7801");
+            btn.setDisabled(false);
+            await this.cleanup();
           }
+        } else {
+          new import_obsidian2.Notice(`\u53D1\u9001\u9A8C\u8BC1\u7801\u5931\u8D25: ${result[1]}`);
+          btn.setButtonText("\u53D1\u9001\u9A8C\u8BC1\u7801");
+          btn.setDisabled(false);
         }
       });
     });
   }
+  async cleanup() {
+    if (this.browser) {
+      try {
+        await this.browser.close();
+      } catch (e) {
+      }
+      this.browser = null;
+      this.context = null;
+      this.page = null;
+    }
+  }
+  onClose() {
+    this.cleanup();
+    const { contentEl } = this;
+    contentEl.empty();
+  }
 };
 
-// lib/flomo/importer.ts
+// lib/get/importer.ts
 var path2 = __toESM(require("path"));
 var fs2 = __toESM(require_lib());
 var import_decompress = __toESM(require_decompress());
@@ -83793,7 +83853,7 @@ function parse(html, options) {
   return Parser.parse(html, options);
 }
 
-// lib/flomo/core.ts
+// lib/get/core.ts
 var import_node_html_parser = __toESM(require_dist());
 
 // node_modules/turndown/lib/turndown.browser.es.js
@@ -84505,143 +84565,227 @@ function canConvert(input) {
 }
 var turndown_browser_es_default = TurndownService;
 
-// lib/flomo/core.ts
-var FlomoCore = class {
-  constructor(flomoData, syncedMemoIds = [], flomoTarget = "flomo") {
+// lib/get/core.ts
+var GetCore = class {
+  constructor(notesData, syncedMemoIds = [], getTarget = "get") {
     __publicField(this, "memos");
     __publicField(this, "tags");
     __publicField(this, "files");
     __publicField(this, "syncedMemoIds", []);
     __publicField(this, "newMemosCount", 0);
-    __publicField(this, "flomoTarget");
-    const root2 = (0, import_node_html_parser.parse)(flomoData);
+    __publicField(this, "getTarget");
+    __publicField(this, "notes");
+    __publicField(this, "allTags");
     this.syncedMemoIds = [...syncedMemoIds];
-    this.flomoTarget = flomoTarget;
-    this.memos = this.loadMemos(root2.querySelectorAll(".memo"));
-    this.tags = this.loadTags(root2.getElementById("tag").querySelectorAll("option"));
+    this.getTarget = getTarget;
     this.files = {};
+    this.notes = [];
+    this.allTags = [];
+    if (typeof notesData === "string") {
+      throw new Error("Get\u7B14\u8BB0 only supports Map<string, string> format");
+    } else {
+      this.loadNotes(notesData);
+    }
+    this.memos = this.notes.map((note) => ({
+      title: note.title,
+      date: note.date,
+      content: note.content,
+      id: note.id
+    }));
+    this.tags = this.allTags;
   }
-  loadMemos(memoNodes) {
-    const res = [];
-    const extrtactTitle = (item) => {
-      return item.replace(/(-|:|\s)/gi, "_");
+  loadNotes(notesData) {
+    const td = new turndown_browser_es_default({ bulletListMarker: "-" });
+    const liRule = {
+      filter: "li",
+      replacement: function(content, node, options) {
+        content = content.replace(/^\n+/, "").replace(/\n+$/, "\n").replace(/\n/gm, "\n    ");
+        var prefix = options.bulletListMarker + " ";
+        var parent = node.parentNode;
+        if (parent.nodeName === "OL") {
+          var start = parent.getAttribute("start");
+          var index = Array.prototype.indexOf.call(parent.children, node);
+          prefix = (start ? Number(start) + index : index + 1) + ".  ";
+        }
+        return prefix + content + (node.nextSibling && !/\n$/.test(content) ? "\n" : "");
+      }
     };
-    const extractContent = (content) => {
-      const td = new turndown_browser_es_default({ bulletListMarker: "-" });
-      const liRule = {
-        filter: "li",
-        replacement: function(content2, node, options) {
-          content2 = content2.replace(/^\n+/, "").replace(/\n+$/, "\n").replace(/\n/gm, "\n    ");
-          var prefix = options.bulletListMarker + " ";
-          var parent = node.parentNode;
-          if (parent.nodeName === "OL") {
-            var start = parent.getAttribute("start");
-            var index = Array.prototype.indexOf.call(parent.children, node);
-            prefix = (start ? Number(start) + index : index + 1) + ".  ";
+    td.addRule("listItem", liRule);
+    td.addRule("audio", {
+      filter: "audio",
+      replacement: (content, node) => {
+        const source = node.querySelector("source");
+        if (source) {
+          const src = source.getAttribute("src");
+          if (src && src.startsWith("files/")) {
+            const filename = src.replace("files/", "");
+            return `![[${this.getTarget}/get attachment/${filename}]]`;
           }
-          return prefix + content2 + (node.nextSibling && !/\n$/.test(content2) ? "\n" : "");
         }
-      };
-      td.addRule("listItem", liRule);
-      const attachmentPath = `${this.flomoTarget}/flomo attachment/`;
-      return td.turndown(content).replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/!\[([^\]]*)\]\(file\/([^\/]+)\/[^\/]+\/([^)]+)\)/gi, `![$1](<${attachmentPath}$2/$3>)`);
-    };
-    const timeOccurrences = {};
-    let totalMemoCount = 0;
-    console.debug(`\u5F00\u59CB\u5904\u7406 ${memoNodes.length} \u6761\u5907\u5FD8\u5F55\uFF0C\u5DF2\u6709 ${this.syncedMemoIds.length} \u6761\u540C\u6B65\u8BB0\u5F55`);
-    memoNodes.forEach((i) => {
-      totalMemoCount++;
-      const dateTime = i.querySelector(".time").textContent;
-      const title = extrtactTitle(dateTime);
-      if (!timeOccurrences[dateTime]) {
-        timeOccurrences[dateTime] = 0;
+        return "";
       }
-      timeOccurrences[dateTime]++;
-      const occurrenceCount = timeOccurrences[dateTime];
-      const contentBody = i.querySelector(".content").innerHTML.replaceAll("<mark>", "FLOMOIMPORTERHIGHLIGHTMARKPLACEHOLDER").replaceAll("</mark>", "FLOMOIMPORTERHIGHLIGHTMARKPLACEHOLDER");
-      const contentFile = i.querySelector(".files").innerHTML;
-      let contentHash = 0;
-      const titleText = title || "";
-      for (let j = 0; j < titleText.length; j++) {
-        contentHash = (contentHash << 5) - contentHash + titleText.charCodeAt(j);
-        contentHash = contentHash & contentHash;
-      }
-      for (let j = 0; j < contentBody.length; j++) {
-        contentHash = (contentHash << 5) - contentHash + contentBody.charCodeAt(j);
-        contentHash = contentHash & contentHash;
-      }
-      for (let j = 0; j < contentFile.length; j++) {
-        contentHash = (contentHash << 5) - contentHash + contentFile.charCodeAt(j);
-        contentHash = contentHash & contentHash;
-      }
-      const memoId = `${dateTime}_${Math.abs(contentHash)}_${occurrenceCount}_${totalMemoCount}`;
-      console.debug(`\u5907\u5FD8\u5F55 #${totalMemoCount}: \u65F6\u95F4=${dateTime}, \u54C8\u5E0C=${Math.abs(contentHash)}, \u540C\u65F6\u95F4\u7B2C${occurrenceCount}\u6761, ID=${memoId}`);
-      const isAlreadySynced = this.syncedMemoIds.some((syncedId) => {
-        if (syncedId === memoId)
-          return true;
-        const parts = syncedId.split("_");
-        if (parts.length >= 2) {
-          const syncedDateTime = parts[0];
-          const syncedHash = parts[1];
-          return syncedDateTime === dateTime && syncedHash === Math.abs(contentHash).toString();
-        }
-        return syncedId === dateTime;
-      });
-      if (isAlreadySynced) {
-        console.debug(`\u5907\u5FD8\u5F55\u5DF2\u5B58\u5728\uFF0C\u8DF3\u8FC7: ${dateTime} (hash: ${Math.abs(contentHash)})`);
-        return;
-      } else {
-        const existingMemoIndex = this.syncedMemoIds.findIndex((syncedId) => {
-          const parts = syncedId.split("_");
-          return parts.length >= 2 && parts[0] === dateTime;
-        });
-        if (existingMemoIndex >= 0) {
-          const oldId = this.syncedMemoIds[existingMemoIndex];
-          console.debug(`\u53D1\u73B0\u5185\u5BB9\u66F4\u65B0: ${dateTime}, \u65E7\u54C8\u5E0C=${oldId.split("_")[1]}, \u65B0\u54C8\u5E0C=${Math.abs(contentHash)}`);
-          this.syncedMemoIds.splice(existingMemoIndex, 1);
-        }
-      }
-      this.newMemosCount++;
-      console.debug(`\u53D1\u73B0\u65B0\u5907\u5FD8\u5F55 #${this.newMemosCount}: ${memoId}`);
-      this.syncedMemoIds.push(memoId);
-      const content = extractContent(contentBody) + "\n" + extractContent(contentFile);
-      res.push({
-        "title": title,
-        "date": dateTime.split(" ")[0],
-        "content": "\u{1F4C5} [[" + dateTime.split(" ")[0] + "]] " + dateTime.split(" ")[1] + "\n\n" + content,
-        "id": memoId
-      });
     });
-    console.debug(`\u5904\u7406\u5B8C\u6210: \u603B\u5171 ${totalMemoCount} \u6761\u5907\u5FD8\u5F55, \u65B0\u589E ${this.newMemosCount} \u6761`);
-    return res;
+    td.addRule("getImage", {
+      filter: (node) => node.nodeName === "IMG",
+      replacement: (content, node) => {
+        const imgNode = node;
+        const src = imgNode.getAttribute("src") || "";
+        const alt = imgNode.getAttribute("alt") || "";
+        if (src.startsWith("files/")) {
+          const filename = src.replace("files/", "");
+          return `![${alt}](<${this.getTarget}/get attachment/${filename}>)`;
+        }
+        return `![${alt}](${src})`;
+      }
+    });
+    console.debug(`\u5F00\u59CB\u5904\u7406 ${notesData.size} \u4E2A\u7B14\u8BB0\u6587\u4EF6\uFF0C\u5DF2\u6709 ${this.syncedMemoIds.length} \u6761\u540C\u6B65\u8BB0\u5F55`);
+    for (const [filename, htmlContent] of notesData) {
+      const noteId = filename.replace(".html", "");
+      if (this.syncedMemoIds.includes(noteId)) {
+        console.debug(`\u7B14\u8BB0\u5DF2\u5B58\u5728\uFF0C\u8DF3\u8FC7: ${noteId}`);
+        continue;
+      }
+      const note = this.parseNote(noteId, htmlContent, td);
+      if (note) {
+        this.notes.push(note);
+        this.newMemosCount++;
+        this.syncedMemoIds.push(noteId);
+        for (const tag of note.tags) {
+          if (!this.allTags.includes(tag)) {
+            this.allTags.push(tag);
+          }
+        }
+      }
+    }
+    console.debug(`\u5904\u7406\u5B8C\u6210: \u603B\u5171 ${notesData.size} \u4E2A\u6587\u4EF6, \u65B0\u589E ${this.newMemosCount} \u6761\u7B14\u8BB0`);
   }
-  loadTags(tagNodes) {
-    const res = [];
-    tagNodes.slice(1).forEach((i) => {
-      res.push(i.textContent);
-    });
-    return res;
+  parseNote(noteId, htmlContent, td) {
+    var _a2, _b, _c;
+    try {
+      const root2 = (0, import_node_html_parser.parse)(htmlContent);
+      const noteEl = root2.querySelector(".note");
+      if (!noteEl) {
+        console.warn(`No .note element found in ${noteId}`);
+        return null;
+      }
+      const titleEl = root2.querySelector("title");
+      const h1El = noteEl.querySelector("h1");
+      const title = ((_a2 = h1El == null ? void 0 : h1El.textContent) == null ? void 0 : _a2.trim()) || ((_b = titleEl == null ? void 0 : titleEl.textContent) == null ? void 0 : _b.trim()) || "Untitled";
+      let dateTime = "";
+      let date = "";
+      const paragraphs = noteEl.querySelectorAll("p");
+      for (const p of paragraphs) {
+        const text = p.textContent || "";
+        const dateMatch = text.match(/创建于[：:]\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})/);
+        if (dateMatch) {
+          date = dateMatch[1];
+          dateTime = `${dateMatch[1]} ${dateMatch[2]}`;
+          break;
+        }
+      }
+      if (!date) {
+        const now = new Date();
+        date = now.toISOString().split("T")[0];
+        dateTime = date + " 00:00:00";
+        console.warn(`No date found in ${noteId}, using current date`);
+      }
+      const tags = [];
+      const tagEls = noteEl.querySelectorAll(".tag");
+      for (const tagEl of tagEls) {
+        const tagText = (_c = tagEl.textContent) == null ? void 0 : _c.trim();
+        if (tagText) {
+          tags.push(tagText);
+        }
+      }
+      const attachments = [];
+      const audioEls = noteEl.querySelectorAll("audio source");
+      for (const audio of audioEls) {
+        const src = audio.getAttribute("src");
+        if (src)
+          attachments.push(src);
+      }
+      const imgEls = noteEl.querySelectorAll("img");
+      for (const img of imgEls) {
+        const src = img.getAttribute("src");
+        if (src && src.startsWith("files/"))
+          attachments.push(src);
+      }
+      const contentEl = (0, import_node_html_parser.parse)(noteEl.toString());
+      const h1ToRemove = contentEl.querySelectorAll("h1");
+      for (const el of h1ToRemove)
+        el.remove();
+      const allPs = contentEl.querySelectorAll("p");
+      for (const p of allPs) {
+        const text = p.textContent || "";
+        if (text.includes("\u521B\u5EFA\u4E8E") || text.includes("\u6807\u7B7E\uFF1A")) {
+          p.remove();
+        }
+      }
+      const firstHr = contentEl.querySelector("hr");
+      if (firstHr)
+        firstHr.remove();
+      const attachmentDivs = contentEl.querySelectorAll(".attachment");
+      for (const div of attachmentDivs) {
+        if (div.querySelector("audio")) {
+          div.remove();
+        }
+      }
+      let content = td.turndown(contentEl.toString());
+      content = content.replace(/\\\[/g, "[").replace(/\\\]/g, "]");
+      content = content.replace(/GETIMPORTERHIGHLIGHTMARKPLACEHOLDER/g, "==");
+      const timeStr = dateTime.split(" ")[1] || "";
+      const formattedContent = `\u{1F4C5} [[${date}]] ${timeStr}
+
+${content}`;
+      return {
+        id: noteId,
+        title,
+        date,
+        dateTime,
+        tags,
+        content: formattedContent,
+        attachments
+      };
+    } catch (error) {
+      console.error(`Error parsing note ${noteId}:`, error);
+      return null;
+    }
   }
 };
 
 // lib/obIntegration/moments.ts
 async function generateMoments(app, flomo, config) {
-  if (flomo.memos.length > 0) {
+  if (Object.keys(flomo.files).length > 0) {
     const buffer = [];
     const tags = [];
-    const index_file = `${config["flomoTarget"]}/Flomo Moments.md`;
+    const index_file = `${config["getTarget"]}/Get Moments.md`;
+    const fileToNote = /* @__PURE__ */ new Map();
     const memoFiles = Object.keys(flomo.files);
+    for (const filePath of memoFiles) {
+      for (const note of flomo.notes) {
+        if (filePath.includes(note.date)) {
+          fileToNote.set(filePath, note);
+          break;
+        }
+      }
+    }
+    const sortedFiles = memoFiles.sort((a, b) => {
+      const noteA = fileToNote.get(a);
+      const noteB = fileToNote.get(b);
+      if (!noteA || !noteB)
+        return 0;
+      return noteB.dateTime.localeCompare(noteA.dateTime);
+    });
     for (const tag of flomo.tags) {
       tags.push(`"${tag}"`);
     }
-    ;
     buffer.push(`---
 createdDate: ${new Date().toLocaleString().split(" ")[0]}
 tags:
   - ${tags.join("\n  - ")}
 ---
 `);
-    for (const [idx, memoFile] of memoFiles.entries()) {
+    for (const [idx, memoFile] of sortedFiles.entries()) {
       buffer.push(`![[${memoFile}]]
 
 ---
@@ -84707,16 +84851,33 @@ var canvasSize = {
   "S": [230, 280]
 };
 async function generateCanvas(app, flomo, config) {
-  if (flomo.memos.length > 0) {
+  if (Object.keys(flomo.files).length > 0) {
     const size = canvasSize[config["canvasSize"]];
     const buffer = [];
-    const canvasFile = `${config["flomoTarget"]}/Flomo Canvas.canvas`;
+    const canvasFile = `${config["getTarget"]}/Get Canvas.canvas`;
+    const fileToNote = /* @__PURE__ */ new Map();
     const memoFiles = Object.keys(flomo.files);
-    for (const [idx, memoFile] of memoFiles.entries()) {
+    for (const filePath of memoFiles) {
+      for (const note of flomo.notes) {
+        if (filePath.includes(note.date)) {
+          fileToNote.set(filePath, note);
+          break;
+        }
+      }
+    }
+    const sortedFiles = memoFiles.sort((a, b) => {
+      const noteA = fileToNote.get(a);
+      const noteB = fileToNote.get(b);
+      if (!noteA || !noteB)
+        return 0;
+      return noteB.dateTime.localeCompare(noteA.dateTime);
+    });
+    for (const [idx, memoFile] of sortedFiles.entries()) {
       const _id = v4_default();
       const _x = idx % 8 * (size[0] + 20);
       const _y = Math.floor(idx / 8) * (size[1] + 20);
       const content = flomo.files[memoFile];
+      const note = fileToNote.get(memoFile);
       const canvasNode = (() => {
         if (config["optionsCanvas"] == "copy_with_link") {
           return {
@@ -84729,9 +84890,10 @@ async function generateCanvas(app, flomo, config) {
             "height": size[1]
           };
         } else {
+          const title = note ? note.title : memoFile.split("@")[1];
           return {
             "type": "text",
-            "text": "**" + memoFile.split("@")[1] + "**\n\n" + content.join("\n\n---\n\n"),
+            "text": "**" + title + "**\n\n" + content.join("\n\n---\n\n"),
             "id": _id,
             "x": _x,
             "y": _y,
@@ -84748,8 +84910,8 @@ async function generateCanvas(app, flomo, config) {
   }
 }
 
-// lib/flomo/importer.ts
-var FlomoImporter = class {
+// lib/get/importer.ts
+var GetImporter = class {
   constructor(app, config) {
     __publicField(this, "config");
     __publicField(this, "app");
@@ -84757,19 +84919,19 @@ var FlomoImporter = class {
     this.app = app;
   }
   async sanitize(path3) {
-    const flomoData = await fs2.readFile(path3, "utf8");
-    const document2 = parse(flomoData);
+    const getData = await fs2.readFile(path3, "utf8");
+    const document2 = parse(getData);
     return serialize(document2);
   }
   async importMemos(flomo) {
     const allowBilink = this.config["expOptionAllowbilink"];
     const margeByDate = this.config["mergeByDate"];
     for (const [idx, memo] of flomo.memos.entries()) {
-      const memoSubDir = `${this.config["flomoTarget"]}/${this.config["memoTarget"]}/${memo["date"]}`;
+      const memoSubDir = `${this.config["getTarget"]}/${this.config["memoTarget"]}/${memo["date"]}`;
       const memoFilePath = margeByDate ? `${memoSubDir}/memo@${memo["date"]}.md` : `${memoSubDir}/memo@${memo["title"]}_${flomo.memos.length - idx}.md`;
       await this.app.vault.adapter.mkdir(memoSubDir);
       const content = (() => {
-        const res = memo["content"].replaceAll("FLOMOIMPORTERHIGHLIGHTMARKPLACEHOLDER", "==");
+        const res = memo["content"].replaceAll("GETIMPORTERHIGHLIGHTMARKPLACEHOLDER", "==");
         if (allowBilink == true) {
           return res.replace(`\\[\\[`, "[[").replace(`\\]\\]`, "]]");
         }
@@ -84880,30 +85042,53 @@ var FlomoImporter = class {
     }
   }
   async import() {
-    const tmpDir = path2.join(FLOMO_CACHE_LOC, "data");
+    const tmpDir = path2.join(GET_CACHE_LOC, "data");
     await fs2.mkdirp(tmpDir);
     const files = await (0, import_decompress.default)(this.config["rawDir"], tmpDir);
-    const flomoTarget = this.config["flomoTarget"] || "flomo";
-    let attachementDir = `${flomoTarget}/flomo attachment/`;
-    console.debug(`\u4F7F\u7528\u9644\u4EF6\u76EE\u5F55: ${attachementDir} (\u57FA\u4E8E flomoTarget: ${flomoTarget})`);
-    for (const f of files) {
-      if (f.type == "directory" && f.path.endsWith("/file/")) {
-        console.debug(`DEBUG: copying from ${tmpDir}/${f.path} to ${attachementDir}`);
-        try {
-          await this.app.vault.adapter.mkdir(attachementDir);
-          const sourceDir = `${tmpDir}/${f.path}`;
-          await this.copyAttachmentsSkipUserIdDir(sourceDir, attachementDir);
-        } catch (error) {
-          console.warn(`\u5904\u7406\u9644\u4EF6\u76EE\u5F55\u5931\u8D25: ${tmpDir}/${f.path}`, error);
+    const notesData = /* @__PURE__ */ new Map();
+    const notesDir = path2.join(tmpDir, "notes");
+    if (await fs2.exists(notesDir)) {
+      const noteFiles = await fs2.readdir(notesDir);
+      for (const file of noteFiles) {
+        if (file.endsWith(".html") && file !== "index.html") {
+          const filePath = path2.join(notesDir, file);
+          const content = await fs2.readFile(filePath, "utf8");
+          notesData.set(file, content);
         }
-        break;
       }
     }
-    const defaultPage = (await fs2.readdir(`${tmpDir}/${files[0].path}`)).filter((fn, _idx, fn_array) => fn.endsWith(".html"))[0];
-    const dataExport = await this.sanitize(`${tmpDir}/${files[0].path}/${defaultPage}`);
+    console.debug(`\u627E\u5230 ${notesData.size} \u4E2A\u7B14\u8BB0HTML\u6587\u4EF6`);
+    const getTarget = this.config["getTarget"] || "get";
+    let attachementDir = `${getTarget}/get attachment/`;
+    console.debug(`\u4F7F\u7528\u9644\u4EF6\u76EE\u5F55: ${attachementDir} (\u57FA\u4E8E getTarget: ${getTarget})`);
+    const filesDir = path2.join(notesDir, "files");
+    if (await fs2.exists(filesDir)) {
+      try {
+        await this.app.vault.adapter.mkdir(attachementDir);
+        const attachmentFiles = await fs2.readdir(filesDir);
+        for (const file of attachmentFiles) {
+          if (file.endsWith(".css") || file.endsWith(".js")) {
+            continue;
+          }
+          const sourcePath = path2.join(filesDir, file);
+          const stat2 = await fs2.stat(sourcePath);
+          if (stat2.isFile()) {
+            try {
+              const content = await fs2.readFile(sourcePath);
+              await this.app.vault.adapter.writeBinary(`${attachementDir}${file}`, content);
+              console.debug(`\u590D\u5236\u9644\u4EF6: ${file}`);
+            } catch (copyError) {
+              console.warn(`\u590D\u5236\u9644\u4EF6\u5931\u8D25: ${file}`, copyError);
+            }
+          }
+        }
+      } catch (error) {
+        console.warn(`\u5904\u7406\u9644\u4EF6\u76EE\u5F55\u5931\u8D25: ${filesDir}`, error);
+      }
+    }
     const syncedMemoIds = this.config["syncedMemoIds"] || [];
-    console.debug(`DEBUG: Loaded ${syncedMemoIds.length} synced memo IDs for incremental sync`);
-    const flomo = new FlomoCore(dataExport, syncedMemoIds, flomoTarget);
+    console.debug(`\u5DF2\u6709 ${syncedMemoIds.length} \u6761\u540C\u6B65\u8BB0\u5F55`);
+    const flomo = new GetCore(notesData, syncedMemoIds, getTarget);
     const memos = await this.importMemos(flomo);
     if (this.config["optionsMoments"] != "skip") {
       await generateMoments(this.app, memos, this.config);
@@ -84914,7 +85099,7 @@ var FlomoImporter = class {
     await fs2.remove(tmpDir);
     return flomo;
   }
-  async importFlomoFile(filePath, mergeDayFile = true) {
+  async importGetFile(filePath, mergeDayFile = true) {
     if (filePath === void 0) {
       throw new Error("filepath undefined");
     }
@@ -84923,19 +85108,19 @@ var FlomoImporter = class {
       throw new Error("File doesn't exist: " + filePath);
     }
     let folder = "";
-    if (config.flomoTarget !== void 0) {
-      folder = config.flomoTarget;
+    if (config.getTarget !== void 0) {
+      folder = config.getTarget;
     } else {
       folder = "flomo";
     }
     if (!await fs2.exists(folder)) {
       await fs2.mkdir(folder);
     }
-    let flomoData = await this.sanitize(filePath);
+    let getData = await this.sanitize(filePath);
     const syncedMemoIds = this.config.syncedMemoIds || [];
     console.debug(`\u4ECE\u914D\u7F6E\u4E2D\u8BFB\u53D6\u5230 ${syncedMemoIds.length} \u6761\u5DF2\u540C\u6B65\u8BB0\u5F55`);
-    const flomoTarget = this.config.flomoTarget || "flomo";
-    const flomo = new FlomoCore(flomoData, syncedMemoIds, flomoTarget);
+    const getTarget = this.config.getTarget || "flomo";
+    const flomo = new GetCore(getData, syncedMemoIds, getTarget);
     const totalMemos = flomo.memos.length;
     const newMemos = flomo.newMemosCount;
     console.log(`\u603B\u5171\u627E\u5230 ${totalMemos} \u6761\u5907\u5FD8\u5F55\uFF0C\u5176\u4E2D ${newMemos} \u6761\u662F\u65B0\u7684`);
@@ -84985,101 +85170,59 @@ var FlomoImporter = class {
   }
 };
 
-// lib/flomo/exporter.ts
-var FlomoExporter = class {
+// lib/get/exporter.ts
+var GetExporter = class {
   async export() {
     let browser = null;
     try {
       browser = await chromium.launch({ headless: true });
       const context = await browser.newContext({ storageState: AUTH_FILE });
       const page = await context.newPage();
-      console.log("\u6B63\u5728\u8BBF\u95EE Flomo \u5BFC\u51FA\u9875\u9762...");
-      await page.goto("https://v.flomoapp.com/mine?source=export", { waitUntil: "networkidle" });
+      console.log("\u6B63\u5728\u8BBF\u95EE Get\u7B14\u8BB0 \u5BFC\u51FA\u9875\u9762...");
+      await page.goto(GET_EXPORT_URL, { waitUntil: "networkidle" });
       await page.waitForLoadState("load");
       await page.waitForTimeout(2e3);
       console.log("\u9875\u9762\u5DF2\u52A0\u8F7D\u5B8C\u6210");
       try {
-        const screenshotPath = DOWNLOAD_FILE.replace("flomo_export.zip", "page_screenshot.png");
+        const screenshotPath = DOWNLOAD_FILE.replace("get_export.zip", "page_screenshot.png");
         await page.screenshot({ path: screenshotPath, fullPage: true });
         console.log(`\u9875\u9762\u622A\u56FE\u5DF2\u4FDD\u5B58\u5230: ${screenshotPath}`);
       } catch (e) {
         console.log("\u4FDD\u5B58\u622A\u56FE\u5931\u8D25:", e.message);
       }
-      console.log("\u7B49\u5F85\u5BFC\u51FA\u5F39\u7A97\u663E\u793A...");
-      const exportDialog = page.locator("text=\u5BFC\u51FA\u7B14\u8BB0").first();
-      await exportDialog.waitFor({ state: "visible", timeout: 1e4 });
-      console.log("\u5BFC\u51FA\u5F39\u7A97\u5DF2\u663E\u793A");
       console.log("\u67E5\u627E\u5BFC\u51FA\u6309\u94AE...");
-      const debugInfo = await page.evaluate(() => {
-        const allElements = Array.from(document.querySelectorAll("*"));
-        const exportElements = allElements.filter((el) => {
-          var _a2;
-          const text = ((_a2 = el.textContent) == null ? void 0 : _a2.trim()) || "";
-          const htmlEl = el;
-          return text === "\u5BFC\u51FA" && htmlEl.offsetWidth > 0 && htmlEl.offsetHeight > 0;
-        });
-        return exportElements.map((el) => {
-          var _a2, _b;
-          const htmlEl = el;
-          return {
-            tagName: el.tagName,
-            className: el.className,
-            id: el.id,
-            parentTag: (_a2 = el.parentElement) == null ? void 0 : _a2.tagName,
-            parentClass: (_b = el.parentElement) == null ? void 0 : _b.className,
-            rect: el.getBoundingClientRect()
-          };
-        });
-      });
-      console.log('\u9875\u9762\u4E0A\u6240\u6709"\u5BFC\u51FA"\u5143\u7D20:', JSON.stringify(debugInfo, null, 2));
-      const htmlStructure = await page.evaluate(() => {
-        const allElements = Array.from(document.querySelectorAll("*"));
-        const targetElement = allElements.find((el) => {
-          var _a2;
-          const text = ((_a2 = el.textContent) == null ? void 0 : _a2.trim()) || "";
-          return text.includes("\u5BFC\u51FA\u5168\u90E8\u7B14\u8BB0");
-        });
-        if (!targetElement)
-          return "Not found";
-        const container = targetElement.closest("div") || targetElement.parentElement;
-        return (container == null ? void 0 : container.outerHTML) || "No container";
-      });
-      console.log("=== \u5BFC\u51FA\u5168\u90E8\u7B14\u8BB0 \u533A\u57DF\u7684 HTML ===");
-      console.log(htmlStructure);
-      console.log("=== HTML \u7ED3\u675F ===");
       let exportButton = null;
       let foundMethod = "";
       try {
-        exportButton = page.locator("button.el-button.el-button--text").filter({ hasText: /^[\s]*导出[\s]*$/ }).first();
+        exportButton = page.locator('button:has-text("\u5BFC\u51FA")').first();
         await exportButton.waitFor({ state: "visible", timeout: 5e3 });
-        foundMethod = "\u65B9\u5F0F1: Element UI \u6309\u94AE";
-        console.log("\u627E\u5230\u5BFC\u51FA\u6309\u94AE (\u65B9\u5F0F1: Element UI \u6309\u94AE)");
+        foundMethod = "\u65B9\u5F0F1: \u5BFC\u51FA\u6309\u94AE";
+        console.log("\u627E\u5230\u5BFC\u51FA\u6309\u94AE (\u65B9\u5F0F1)");
       } catch (e) {
         console.log("\u65B9\u5F0F1\u5931\u8D25,\u5C1D\u8BD5\u65B9\u5F0F2");
       }
       if (!exportButton) {
         try {
-          const container = page.locator("text=\u5BFC\u51FA\u5168\u90E8\u7B14\u8BB0").locator("..");
-          exportButton = container.locator("button").filter({ hasText: /^[\s]*导出[\s]*$/ }).first();
+          exportButton = page.locator('button:has-text("\u4E0B\u8F7D")').first();
           await exportButton.waitFor({ state: "visible", timeout: 5e3 });
-          foundMethod = "\u65B9\u5F0F2: \u5BB9\u5668\u5185\u6309\u94AE";
-          console.log("\u627E\u5230\u5BFC\u51FA\u6309\u94AE (\u65B9\u5F0F2: \u5728\u5BB9\u5668\u4E2D\u67E5\u627E)");
+          foundMethod = "\u65B9\u5F0F2: \u4E0B\u8F7D\u6309\u94AE";
+          console.log("\u627E\u5230\u5BFC\u51FA\u6309\u94AE (\u65B9\u5F0F2: \u4E0B\u8F7D)");
         } catch (e) {
           console.log("\u65B9\u5F0F2\u5931\u8D25,\u5C1D\u8BD5\u65B9\u5F0F3");
         }
       }
       if (!exportButton) {
         try {
-          exportButton = page.locator('button:has-text("\u5BFC\u51FA"), a:has-text("\u5BFC\u51FA"), [role="button"]:has-text("\u5BFC\u51FA")').filter({ hasText: /^[\s]*导出[\s]*$/ }).first();
+          exportButton = page.locator('[class*="export"], [class*="download"], a:has-text("\u5BFC\u51FA"), a:has-text("\u4E0B\u8F7D")').first();
           await exportButton.waitFor({ state: "visible", timeout: 5e3 });
-          foundMethod = "\u65B9\u5F0F3: \u901A\u7528\u6309\u94AE\u67E5\u627E";
-          console.log("\u627E\u5230\u5BFC\u51FA\u6309\u94AE (\u65B9\u5F0F3: \u76F4\u63A5\u67E5\u627E\u53EF\u70B9\u51FB\u5143\u7D20)");
+          foundMethod = "\u65B9\u5F0F3: \u901A\u7528\u9009\u62E9\u5668";
+          console.log("\u627E\u5230\u5BFC\u51FA\u6309\u94AE (\u65B9\u5F0F3)");
         } catch (e) {
           console.log("\u65B9\u5F0F3\u5931\u8D25");
         }
       }
       if (!exportButton) {
-        throw new Error("\u65E0\u6CD5\u627E\u5230\u5BFC\u51FA\u6309\u94AE");
+        throw new Error("\u65E0\u6CD5\u627E\u5230\u5BFC\u51FA\u6309\u94AE\u3002\u8BF7\u68C0\u67E5Get\u7B14\u8BB0\u5BFC\u51FA\u9875\u9762\u7684\u5B9E\u9645\u7ED3\u6784\u3002");
       }
       console.log(`\u6210\u529F\u627E\u5230\u5BFC\u51FA\u6309\u94AE (${foundMethod})`);
       await exportButton.scrollIntoViewIfNeeded();
@@ -85088,12 +85231,6 @@ var FlomoExporter = class {
       console.log("\u70B9\u51FB\u5BFC\u51FA\u6309\u94AE...");
       await exportButton.click({ timeout: 5e3 });
       console.log("\u5DF2\u89E6\u53D1\u70B9\u51FB");
-      await page.waitForTimeout(1e3);
-      console.log("\u70B9\u51FB\u540E\u7B49\u5F851\u79D2");
-      const hasProgress = await page.locator("text=\u5BFC\u51FA\u4E2D, text=\u6B63\u5728\u5BFC\u51FA, text=\u751F\u6210\u4E2D").count();
-      if (hasProgress > 0) {
-        console.log("\u68C0\u6D4B\u5230\u5BFC\u51FA\u8FDB\u5EA6\u63D0\u793A");
-      }
       console.log("\u7B49\u5F85\u4E0B\u8F7D\u5F00\u59CB...");
       const download = await downloadPromise;
       console.log("\u4E0B\u8F7D\u5DF2\u89E6\u53D1,\u6B63\u5728\u4FDD\u5B58\u6587\u4EF6...");
@@ -85131,8 +85268,8 @@ var MainUI = class extends import_obsidian3.Modal {
     try {
       if (isAuthFileExist) {
         btn.setDisabled(true);
-        btn.setButtonText("Exporting from Flomo ...");
-        const exportResult = await new FlomoExporter().export();
+        btn.setButtonText("\u6B63\u5728\u4ECE Get\u7B14\u8BB0 \u5BFC\u51FA...");
+        const exportResult = await new GetExporter().export();
         btn.setDisabled(false);
         if (exportResult[0] == true) {
           this.rawPath = DOWNLOAD_FILE;
@@ -85149,12 +85286,12 @@ var MainUI = class extends import_obsidian3.Modal {
     } catch (err) {
       console.log(err);
       btn.setButtonText("Auto Sync \u{1F917}");
-      new import_obsidian3.Notice(`Flomo Sync Error. Details:
+      new import_obsidian3.Notice(`Get\u7B14\u8BB0 \u540C\u6B65\u9519\u8BEF. \u8BE6\u60C5:
 ${err}`);
     }
   }
   async onSubmit() {
-    const targetMemoLocation = this.plugin.settings.flomoTarget + "/" + this.plugin.settings.memoTarget;
+    const targetMemoLocation = this.plugin.settings.getTarget + "/" + this.plugin.settings.memoTarget;
     const res = await this.app.vault.adapter.exists(targetMemoLocation);
     if (!res) {
       console.debug(`DEBUG: creating memo root -> ${targetMemoLocation}`);
@@ -85164,18 +85301,18 @@ ${err}`);
       const config = this.plugin.settings;
       config["rawDir"] = this.rawPath;
       config["syncedMemoIds"] = this.plugin.settings.syncedMemoIds || [];
-      const flomo = await new FlomoImporter(this.app, config).import();
+      const flomo = await new GetImporter(this.app, config).import();
       if (flomo.syncedMemoIds && flomo.syncedMemoIds.length > 0) {
         this.plugin.settings.syncedMemoIds = flomo.syncedMemoIds;
         await this.plugin.saveSettings();
       }
-      new import_obsidian3.Notice(`\u{1F389} Import Completed.
-Total: ${flomo.memos.length} memos, New: ${flomo.newMemosCount || 0} memos`);
+      new import_obsidian3.Notice(`\u{1F389} \u5BFC\u5165\u5B8C\u6210.
+\u603B\u6570: ${flomo.memos.length} \u6761\u7B14\u8BB0, \u65B0\u589E: ${flomo.newMemosCount || 0} \u6761\u7B14\u8BB0`);
       this.rawPath = "";
     } catch (err) {
       this.rawPath = "";
       console.log(err);
-      new import_obsidian3.Notice(`Flomo Importer Error. Details:
+      new import_obsidian3.Notice(`Get\u7B14\u8BB0 \u5BFC\u5165\u9519\u8BEF. \u8BE6\u60C5:
 ${err}`);
     }
   }
@@ -85183,31 +85320,48 @@ ${err}`);
     var _a2;
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h3", { text: "Flomo Importer" });
-    const fileLocContol = contentEl.createEl("input", { type: "file", cls: "uploadbox" });
+    const headerEl = contentEl.createDiv({ cls: "get-importer-header" });
+    headerEl.createEl("h2", { text: "\u{1F4D3} Get\u7B14\u8BB0 Importer" });
+    headerEl.createEl("p", {
+      text: "\u5C06 Get\u7B14\u8BB0 \u540C\u6B65\u5230 Obsidian",
+      cls: "get-importer-subtitle"
+    });
+    const manualImportSection = contentEl.createDiv({ cls: "get-importer-section" });
+    manualImportSection.createEl("h3", { text: "\u{1F4C1} \u624B\u52A8\u5BFC\u5165" });
+    manualImportSection.createEl("p", {
+      text: "\u4E0A\u4F20\u4ECE Get\u7B14\u8BB0 \u5BFC\u51FA\u7684 ZIP \u6587\u4EF6",
+      cls: "setting-item-description"
+    });
+    const fileLocContol = manualImportSection.createEl("input", {
+      type: "file",
+      cls: "uploadbox"
+    });
     fileLocContol.setAttr("accept", ".zip");
     fileLocContol.onchange = (ev) => {
       this.rawPath = ev.currentTarget.files[0]["path"];
       console.log(this.rawPath);
     };
-    contentEl.createEl("br");
-    new import_obsidian3.Setting(contentEl).setName("Flomo Home").setDesc("set the flomo home location").addText((text) => text.setPlaceholder("flomo").setValue(this.plugin.settings.flomoTarget).onChange(async (value) => {
-      this.plugin.settings.flomoTarget = value;
+    const basicSettingsSection = contentEl.createDiv({ cls: "get-importer-section" });
+    basicSettingsSection.createEl("h3", { text: "\u2699\uFE0F \u57FA\u672C\u8BBE\u7F6E" });
+    new import_obsidian3.Setting(basicSettingsSection).setName("Get\u7B14\u8BB0 Home").setDesc("\u8BBE\u7F6E Get\u7B14\u8BB0 \u4E3B\u76EE\u5F55\u4F4D\u7F6E").addText((text) => text.setPlaceholder("get").setValue(this.plugin.settings.getTarget).onChange(async (value) => {
+      this.plugin.settings.getTarget = value;
     }));
-    new import_obsidian3.Setting(contentEl).setName("Memo Home").setDesc("your memos are at: FlomoHome / MemoHome").addText((text) => text.setPlaceholder("memos").setValue(this.plugin.settings.memoTarget).onChange(async (value) => {
+    new import_obsidian3.Setting(basicSettingsSection).setName("\u7B14\u8BB0\u76EE\u5F55").setDesc("\u7B14\u8BB0\u5B58\u653E\u4F4D\u7F6E: Get\u7B14\u8BB0Home / \u7B14\u8BB0\u76EE\u5F55").addText((text) => text.setPlaceholder("notes").setValue(this.plugin.settings.memoTarget).onChange(async (value) => {
       this.plugin.settings.memoTarget = value;
     }));
-    new import_obsidian3.Setting(contentEl).setName("Moments").setDesc("set moments style: flow(default) | skip").addDropdown((drp) => {
-      drp.addOption("copy_with_link", "Generate Moments").addOption("skip", "Skip Moments").setValue(this.plugin.settings.optionsMoments).onChange(async (value) => {
+    const visualSection = contentEl.createDiv({ cls: "get-importer-section" });
+    visualSection.createEl("h3", { text: "\u{1F3A8} \u53EF\u89C6\u5316\u8BBE\u7F6E" });
+    new import_obsidian3.Setting(visualSection).setName("Moments").setDesc("\u751F\u6210 Moments \u65F6\u95F4\u7EBF\u6587\u4EF6").addDropdown((drp) => {
+      drp.addOption("copy_with_link", "\u751F\u6210 Moments").addOption("skip", "\u8DF3\u8FC7 Moments").setValue(this.plugin.settings.optionsMoments).onChange(async (value) => {
         this.plugin.settings.optionsMoments = value;
       });
     });
-    new import_obsidian3.Setting(contentEl).setName("Canvas").setDesc("set canvas options: link | content(default) | skip").addDropdown((drp) => {
-      drp.addOption("copy_with_link", "Generate Canvas").addOption("copy_with_content", "Generate Canvas (with content)").addOption("skip", "Skip Canvas").setValue(this.plugin.settings.optionsCanvas).onChange(async (value) => {
+    new import_obsidian3.Setting(visualSection).setName("Canvas").setDesc("\u751F\u6210 Canvas \u753B\u5E03\u6587\u4EF6").addDropdown((drp) => {
+      drp.addOption("copy_with_link", "\u751F\u6210 Canvas\uFF08\u94FE\u63A5\u6A21\u5F0F\uFF09").addOption("copy_with_content", "\u751F\u6210 Canvas\uFF08\u5185\u5BB9\u6A21\u5F0F\uFF09").addOption("skip", "\u8DF3\u8FC7 Canvas").setValue(this.plugin.settings.optionsCanvas).onChange(async (value) => {
         this.plugin.settings.optionsCanvas = value;
       });
     });
-    const canvsOptionBlock = contentEl.createEl("div", { cls: "canvasOptionBlock" });
+    const canvsOptionBlock = visualSection.createEl("div", { cls: "canvasOptionBlock" });
     const canvsOptionLabelL = canvsOptionBlock.createEl("label");
     const canvsOptionLabelM = canvsOptionBlock.createEl("label");
     const canvsOptionLabelS = canvsOptionBlock.createEl("label");
@@ -85240,24 +85394,26 @@ ${err}`);
     canvsSizeS.onchange = (ev) => {
       this.plugin.settings.canvasSize = "S";
     };
-    new import_obsidian3.Setting(contentEl).setName("Experimental Options").setDesc("set experimental options");
-    const allowBiLink = createExpOpt(contentEl, "Convert bidirectonal link. example: [[abc]]");
+    const advancedSection = contentEl.createDiv({ cls: "get-importer-section" });
+    advancedSection.createEl("h3", { text: "\u{1F52C} \u9AD8\u7EA7\u9009\u9879" });
+    const allowBiLink = createExpOpt(advancedSection, "\u8F6C\u6362\u53CC\u5411\u94FE\u63A5\uFF08\u652F\u6301 [[\u94FE\u63A5]] \u8BED\u6CD5\uFF09");
     allowBiLink.checked = this.plugin.settings.expOptionAllowbilink;
     allowBiLink.onchange = (ev) => {
       this.plugin.settings.expOptionAllowbilink = ev.currentTarget.checked;
     };
-    const mergeByDate = createExpOpt(contentEl, "Merge memos by date");
+    const mergeByDate = createExpOpt(advancedSection, "\u6309\u65E5\u671F\u5408\u5E76\u7B14\u8BB0\uFF08\u540C\u4E00\u5929\u7684\u7B14\u8BB0\u5408\u5E76\u5230\u4E00\u4E2A\u6587\u4EF6\uFF09");
     mergeByDate.checked = this.plugin.settings.mergeByDate;
     mergeByDate.onchange = (ev) => {
       this.plugin.settings.mergeByDate = ev.currentTarget.checked;
     };
-    new import_obsidian3.Setting(contentEl).setName("Auto Sync Options").setDesc("set auto sync options");
-    const autoSyncOnStartup = createExpOpt(contentEl, "Auto sync when Obsidian starts");
+    const autoSyncSection = contentEl.createDiv({ cls: "get-importer-section" });
+    autoSyncSection.createEl("h3", { text: "\u{1F504} \u81EA\u52A8\u540C\u6B65" });
+    const autoSyncOnStartup = createExpOpt(autoSyncSection, "\u542F\u52A8 Obsidian \u65F6\u81EA\u52A8\u540C\u6B65");
     autoSyncOnStartup.checked = this.plugin.settings.autoSyncOnStartup;
     autoSyncOnStartup.onchange = (ev) => {
       this.plugin.settings.autoSyncOnStartup = ev.currentTarget.checked;
     };
-    const autoSyncInterval = createExpOpt(contentEl, "Auto sync every hour");
+    const autoSyncInterval = createExpOpt(autoSyncSection, "\u6BCF\u5C0F\u65F6\u81EA\u52A8\u540C\u6B65\u4E00\u6B21");
     autoSyncInterval.checked = this.plugin.settings.autoSyncInterval;
     autoSyncInterval.onchange = (ev) => {
       this.plugin.settings.autoSyncInterval = ev.currentTarget.checked;
@@ -85270,61 +85426,65 @@ ${err}`);
     if (this.plugin.settings.lastSyncTime) {
       const lastSyncDate = new Date(this.plugin.settings.lastSyncTime);
       const syncedCount = ((_a2 = this.plugin.settings.syncedMemoIds) == null ? void 0 : _a2.length) || 0;
-      contentEl.createEl("div", {
-        text: `Last sync: ${lastSyncDate.toLocaleString()}`,
-        cls: "last-sync-time"
+      const syncStatusEl = autoSyncSection.createDiv({ cls: "sync-status-box" });
+      syncStatusEl.createEl("div", {
+        text: `\u{1F4C5} \u4E0A\u6B21\u540C\u6B65: ${lastSyncDate.toLocaleString()}`,
+        cls: "sync-info-item"
       });
-      contentEl.createEl("div", {
-        text: `Synced memos: ${syncedCount}`,
-        cls: "synced-count"
+      syncStatusEl.createEl("div", {
+        text: `\u{1F4DD} \u5DF2\u540C\u6B65\u7B14\u8BB0: ${syncedCount} \u6761`,
+        cls: "sync-info-item"
       });
     }
-    new import_obsidian3.Setting(contentEl).setName("Reset Sync History").setDesc("Clear all synced memo IDs to re-import all memos (useful after changing attachment paths)").addButton((btn) => {
-      btn.setButtonText("Reset Sync History").setWarning().onClick(async () => {
+    const dataSection = contentEl.createDiv({ cls: "get-importer-section" });
+    dataSection.createEl("h3", { text: "\u{1F5C3}\uFE0F \u6570\u636E\u7BA1\u7406" });
+    new import_obsidian3.Setting(dataSection).setName("\u91CD\u7F6E\u540C\u6B65\u5386\u53F2").setDesc("\u6E05\u9664\u6240\u6709\u5DF2\u540C\u6B65\u7684\u7B14\u8BB0\u8BB0\u5F55\uFF0C\u4E0B\u6B21\u540C\u6B65\u65F6\u5C06\u91CD\u65B0\u5BFC\u5165\u6240\u6709\u7B14\u8BB0").addButton((btn) => {
+      btn.setButtonText("\u91CD\u7F6E\u540C\u6B65\u5386\u53F2").setWarning().onClick(async () => {
         var _a3;
-        const flomoTarget = this.plugin.settings.flomoTarget || "flomo";
-        const memoTarget = this.plugin.settings.memoTarget || "memos";
-        const confirmed = confirm(`Are you sure you want to reset sync history?
+        const getTarget = this.plugin.settings.getTarget || "get";
+        const memoTarget = this.plugin.settings.memoTarget || "notes";
+        const confirmed = confirm(`\u786E\u5B9A\u8981\u91CD\u7F6E\u540C\u6B65\u5386\u53F2\u5417\uFF1F
 
-This will clear ${((_a3 = this.plugin.settings.syncedMemoIds) == null ? void 0 : _a3.length) || 0} synced memo records.
-Next sync will re-import all memos from Flomo.
+\u8FD9\u5C06\u6E05\u9664 ${((_a3 = this.plugin.settings.syncedMemoIds) == null ? void 0 : _a3.length) || 0} \u6761\u5DF2\u540C\u6B65\u7684\u7B14\u8BB0\u8BB0\u5F55\u3002
+\u4E0B\u6B21\u540C\u6B65\u65F6\u5C06\u91CD\u65B0\u5BFC\u5165\u6240\u6709 Get\u7B14\u8BB0\u3002
 
-\u26A0\uFE0F  IMPORTANT: Before syncing again, you should:
-1. Delete the old memos folder: ${flomoTarget}/${memoTarget}/
-2. Delete the old attachments folder if path changed
+\u26A0\uFE0F  \u91CD\u8981\u63D0\u793A: \u5728\u518D\u6B21\u540C\u6B65\u4E4B\u524D\uFF0C\u60A8\u5E94\u8BE5\uFF1A
+1. \u5220\u9664\u65E7\u7684\u7B14\u8BB0\u76EE\u5F55: ${getTarget}/${memoTarget}/
+2. \u5982\u679C\u9644\u4EF6\u8DEF\u5F84\u5DF2\u66F4\u6539\uFF0C\u5220\u9664\u65E7\u7684\u9644\u4EF6\u76EE\u5F55
 
-Otherwise, existing files will be OVERWRITTEN!`);
+\u5426\u5219\uFF0C\u73B0\u6709\u6587\u4EF6\u5C06\u88AB\u8986\u76D6\uFF01`);
         if (confirmed) {
           this.plugin.settings.syncedMemoIds = [];
           this.plugin.settings.lastSyncTime = 0;
           await this.plugin.saveSettings();
-          new import_obsidian3.Notice(`Sync history has been reset.
+          new import_obsidian3.Notice(`\u540C\u6B65\u5386\u53F2\u5DF2\u91CD\u7F6E\u3002
 
-\u26A0\uFE0F  Remember to delete old folders before next sync:
-- ${flomoTarget}/${memoTarget}/
-- ${flomoTarget}/flomo picture/ (if exists)`, 1e4);
+\u26A0\uFE0F  \u8BB0\u5F97\u5728\u4E0B\u6B21\u540C\u6B65\u524D\u5220\u9664\u65E7\u76EE\u5F55:
+- ${getTarget}/${memoTarget}/
+- ${getTarget}/get attachment/ (\u5982\u679C\u5B58\u5728)`, 1e4);
           this.close();
           this.open();
         }
       });
     });
-    new import_obsidian3.Setting(contentEl).addButton((btn) => {
-      btn.setButtonText("Cancel").setCta().onClick(async () => {
+    const actionSection = contentEl.createDiv({ cls: "get-importer-actions" });
+    new import_obsidian3.Setting(actionSection).addButton((btn) => {
+      btn.setButtonText("\u53D6\u6D88").onClick(async () => {
         await this.plugin.saveSettings();
         this.close();
       });
     }).addButton((btn) => {
-      btn.setButtonText("Import").setCta().onClick(async () => {
+      btn.setButtonText("\u624B\u52A8\u5BFC\u5165").setCta().onClick(async () => {
         if (this.rawPath != "") {
           await this.plugin.saveSettings();
           await this.onSubmit();
           this.close();
         } else {
-          new import_obsidian3.Notice("No File Selected.");
+          new import_obsidian3.Notice("\u8BF7\u5148\u9009\u62E9 ZIP \u6587\u4EF6");
         }
       });
     }).addButton((btn) => {
-      btn.setButtonText("Auto Sync \u{1F917}").setCta().onClick(async () => {
+      btn.setButtonText("\u81EA\u52A8\u540C\u6B65 \u{1F680}").setCta().setClass("sync-btn-primary").onClick(async () => {
         await this.plugin.saveSettings();
         await this.onSync(btn);
       });
@@ -85339,9 +85499,10 @@ Otherwise, existing files will be OVERWRITTEN!`);
 
 // main.ts
 var fs4 = __toESM(require_lib());
+var GET_NOTES_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="16" y1="2" x2="16" y2="22"/><line x1="8" y1="7" x2="13" y2="7"/><line x1="8" y1="11" x2="13" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></svg>';
 var DEFAULT_SETTINGS = {
-  flomoTarget: "flomo",
-  memoTarget: "memos",
+  getTarget: "get",
+  memoTarget: "notes",
   optionsMoments: "copy_with_link",
   optionsCanvas: "copy_with_content",
   expOptionAllowbilink: true,
@@ -85352,7 +85513,7 @@ var DEFAULT_SETTINGS = {
   lastSyncTime: 0,
   syncedMemoIds: []
 };
-var FlomoImporterPlugin = class extends import_obsidian4.Plugin {
+var GetImporterPlugin = class extends import_obsidian4.Plugin {
   constructor() {
     super(...arguments);
     __publicField(this, "settings");
@@ -85362,28 +85523,28 @@ var FlomoImporterPlugin = class extends import_obsidian4.Plugin {
   async onload() {
     await this.loadSettings();
     this.mainUI = new MainUI(this.app, this);
-    (0, import_obsidian4.addIcon)("target", `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-target"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`);
-    const ribbonIconEl = this.addRibbonIcon("target", "Flomo Importer", (evt) => {
+    (0, import_obsidian4.addIcon)("get-notes", GET_NOTES_ICON);
+    const ribbonIconEl = this.addRibbonIcon("get-notes", "Get\u7B14\u8BB0 Importer", (evt) => {
       this.mainUI.open();
     });
     ribbonIconEl.addClass("my-plugin-ribbon-class");
     this.addCommand({
-      id: "open-flomo-importer",
-      name: "Open Flomo Importer",
+      id: "open-get-importer",
+      name: "Open Get\u7B14\u8BB0 Importer",
       callback: () => {
         this.mainUI.open();
       }
     });
     this.addCommand({
-      id: "sync-flomo-now",
-      name: "Sync Flomo Now",
+      id: "sync-get-now",
+      name: "Sync Get\u7B14\u8BB0 Now",
       callback: async () => {
-        await this.syncFlomo();
+        await this.syncGet();
       }
     });
     if (this.settings.autoSyncOnStartup) {
       setTimeout(async () => {
-        await this.syncFlomo();
+        await this.syncGet();
       }, 2e3);
     }
     if (this.settings.autoSyncInterval) {
@@ -85407,7 +85568,7 @@ var FlomoImporterPlugin = class extends import_obsidian4.Plugin {
       window.clearInterval(this.syncIntervalId);
     }
     this.syncIntervalId = window.setInterval(async () => {
-      await this.syncFlomo();
+      await this.syncGet();
     }, 36e5);
   }
   stopAutoSync() {
@@ -85416,7 +85577,7 @@ var FlomoImporterPlugin = class extends import_obsidian4.Plugin {
       this.syncIntervalId = null;
     }
   }
-  async syncFlomo() {
+  async syncGet() {
     try {
       const syncBtn = new import_obsidian4.ButtonComponent(document.createElement("div"));
       await this.mainUI.onSync(syncBtn);
@@ -85424,7 +85585,7 @@ var FlomoImporterPlugin = class extends import_obsidian4.Plugin {
       await this.saveSettings();
     } catch (error) {
       console.error("Auto sync failed:", error);
-      new import_obsidian4.Notice("Flomo auto sync failed: " + error.message);
+      new import_obsidian4.Notice("Get\u7B14\u8BB0 auto sync failed: " + error.message);
     }
   }
   async runAutoSync() {
@@ -85432,7 +85593,7 @@ var FlomoImporterPlugin = class extends import_obsidian4.Plugin {
       return;
     }
     try {
-      console.log("\u5F00\u59CB\u81EA\u52A8\u540C\u6B65 Flomo \u6570\u636E...");
+      console.log("\u5F00\u59CB\u81EA\u52A8\u540C\u6B65 Get\u7B14\u8BB0 \u6570\u636E...");
       const isAuthFileExist = await fs4.exists(AUTH_FILE);
       if (!isAuthFileExist) {
         console.log("\u672A\u627E\u5230\u8BA4\u8BC1\u6587\u4EF6\uFF0C\u65E0\u6CD5\u81EA\u52A8\u540C\u6B65");
@@ -85440,18 +85601,18 @@ var FlomoImporterPlugin = class extends import_obsidian4.Plugin {
       }
       if (!await fs4.exists(DOWNLOAD_FILE)) {
         console.log("\u672A\u627E\u5230\u4E0B\u8F7D\u6587\u4EF6\uFF0C\u7B49\u5F85\u5148\u624B\u52A8\u540C\u6B65\u4E00\u6B21");
-        new import_obsidian4.Notice("Flomo: \u8BF7\u5148\u624B\u52A8\u540C\u6B65\u4E00\u6B21\uFF0C\u4EE5\u4FBF\u81EA\u52A8\u540C\u6B65\u529F\u80FD\u6B63\u5E38\u5DE5\u4F5C");
+        new import_obsidian4.Notice("Get\u7B14\u8BB0: \u8BF7\u5148\u624B\u52A8\u540C\u6B65\u4E00\u6B21\uFF0C\u4EE5\u4FBF\u81EA\u52A8\u540C\u6B65\u529F\u80FD\u6B63\u5E38\u5DE5\u4F5C");
         return;
       }
-      const importer = new FlomoImporter(this.app, this.settings);
-      const result = await importer.importFlomoFile(DOWNLOAD_FILE, this.settings.mergeByDate);
+      const importer = new GetImporter(this.app, this.settings);
+      const result = await importer.importGetFile(DOWNLOAD_FILE, this.settings.mergeByDate);
       await this.saveSettings();
       if (result.newCount > 0) {
-        new import_obsidian4.Notice(`Flomo \u81EA\u52A8\u540C\u6B65\u5B8C\u6210: \u53D1\u73B0 ${result.count} \u6761\u5907\u5FD8\u5F55\uFF0C\u65B0\u589E ${result.newCount} \u6761`);
+        new import_obsidian4.Notice(`Get\u7B14\u8BB0 \u81EA\u52A8\u540C\u6B65\u5B8C\u6210: \u53D1\u73B0 ${result.count} \u6761\u7B14\u8BB0\uFF0C\u65B0\u589E ${result.newCount} \u6761`);
       } else if (result.count > 0) {
-        new import_obsidian4.Notice(`Flomo \u81EA\u52A8\u540C\u6B65\u5B8C\u6210: \u5168\u90E8 ${result.count} \u6761\u5907\u5FD8\u5F55\u5DF2\u662F\u6700\u65B0`);
+        new import_obsidian4.Notice(`Get\u7B14\u8BB0 \u81EA\u52A8\u540C\u6B65\u5B8C\u6210: \u5168\u90E8 ${result.count} \u6761\u7B14\u8BB0\u5DF2\u662F\u6700\u65B0`);
       } else {
-        new import_obsidian4.Notice(`Flomo \u81EA\u52A8\u540C\u6B65\u5B8C\u6210: \u672A\u53D1\u73B0\u4EFB\u4F55\u5907\u5FD8\u5F55`);
+        new import_obsidian4.Notice(`Get\u7B14\u8BB0 \u81EA\u52A8\u540C\u6B65\u5B8C\u6210: \u672A\u53D1\u73B0\u4EFB\u4F55\u7B14\u8BB0`);
       }
       if (this.mainUI) {
         const lastSyncTimeStr = new Date(this.settings.lastSyncTime).toLocaleString();
@@ -85460,10 +85621,10 @@ var FlomoImporterPlugin = class extends import_obsidian4.Plugin {
           syncStatusEl.textContent = `\u4E0A\u6B21\u540C\u6B65: ${lastSyncTimeStr}`;
         }
       }
-      console.log(`\u81EA\u52A8\u540C\u6B65\u5B8C\u6210: \u603B\u5171 ${result.count} \u6761\u5907\u5FD8\u5F55, \u65B0\u589E ${result.newCount} \u6761`);
+      console.log(`\u81EA\u52A8\u540C\u6B65\u5B8C\u6210: \u603B\u5171 ${result.count} \u6761\u7B14\u8BB0, \u65B0\u589E ${result.newCount} \u6761`);
     } catch (error) {
       console.error("\u81EA\u52A8\u540C\u6B65\u5931\u8D25:", error);
-      new import_obsidian4.Notice(`Flomo \u81EA\u52A8\u540C\u6B65\u5931\u8D25: ${error.message}`);
+      new import_obsidian4.Notice(`Get\u7B14\u8BB0 \u81EA\u52A8\u540C\u6B65\u5931\u8D25: ${error.message}`);
     }
   }
 };
