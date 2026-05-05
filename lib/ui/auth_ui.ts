@@ -69,7 +69,7 @@ export class AuthUI extends Modal {
                             this.context = result[3]!;
                             this.page = result[4]!;
 
-                            new Notice("请在浏览器中手动点击'获取验证码'，输入验证码并点击'登录'按钮", 10000);
+                            new Notice("请在浏览器中手动完成验证码登录。", 10000);
                             btn.setButtonText("等待登录中...");
 
                             // 自动等待用户手动登录
