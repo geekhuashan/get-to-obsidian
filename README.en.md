@@ -355,3 +355,10 @@ You are free to:
 Made with ❤️ by the Community
 
 </div>
+
+## About the Author
+
+Hi, I'm [Huashan](https://www.geekhuashan.com) — a formulation scientist by day, automation geek by night. I write about knowledge management, AI agents and lab automation at [geekhuashan.com](https://www.geekhuashan.com).
+
+- 📖 The story behind this plugin: [Get Notes to Obsidian Importer 2.0 — note migration in the all-in AI era](https://www.geekhuashan.com/blog/get-to-obsidian-importer.en)
+- 🤖 [I built an AI automation system that handles 15 tasks for me every day](https://www.geekhuashan.com/blog/openclaw-personal-ai-automation.en)

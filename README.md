@@ -581,3 +581,10 @@ npx playwright@1.43.1 install
 Made with ❤️ by Community
 
 </div>
+
+## 关于作者
+
+你好，我是[花衫](https://www.geekhuashan.com)——白天做配方科学家，晚上搞自动化。我在博客「原子比特之间」写知识管理、AI Agent 和实验室自动化：
+
+- 📖 这个插件的开发故事：[Get 笔记 → Obsidian 2.0：All-in AI 时代的笔记迁移](https://www.geekhuashan.com/blog/get-to-obsidian-importer)
+- 🤖 [我用 AI 自动化系统每天替我处理 15 件事](https://www.geekhuashan.com/blog/openclaw-personal-ai-automation)
