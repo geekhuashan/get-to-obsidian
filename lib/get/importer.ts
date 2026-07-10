@@ -11,6 +11,8 @@ import { generateMoments } from '../obIntegration/moments';
 import { generateCanvas } from '../obIntegration/canvas';
 
 import { GET_CACHE_LOC } from './const'
+import { LegacyExportError } from './legacy_errors';
+import { legacyLog } from './legacy_logger';
 
 
 export class GetImporter {
@@ -196,15 +198,13 @@ export class GetImporter {
     }
 
     async import(): Promise<GetCore> {
-
-        // 1. Create workspace
+        legacyLog('import unzip start');
         const tmpDir = path.join(GET_CACHE_LOC, "data")
         await fs.mkdirp(tmpDir);
 
-        // 2. Unzip get_export.zip to workspace
         const files = await decompress(this.config["rawDir"], tmpDir)
+        legacyLog('import unzip complete', { fileCount: files.length, rawPath: this.config["rawDir"] });
 
-        // 3. Get笔记: 读取所有笔记HTML文件
         const notesData = new Map<string, string>();
         const notesDir = path.join(tmpDir, 'notes');
 
@@ -219,10 +219,11 @@ export class GetImporter {
             }
         }
 
-        console.debug(`找到 ${notesData.size} 个笔记HTML文件`);
+        legacyLog('import notes discovered', { notes: notesData.size });
+        if (notesData.size === 0) {
+            throw new LegacyExportError("PARSE_FAILED", "No note HTML files found in exported ZIP");
+        }
 
-        // 4. 复制附件到 ObVault
-        // Get笔记附件结构：notes/files/*.jpg, *.mp3
         const getTarget = this.config["getTarget"] || "get";
         let attachementDir = `${getTarget}/get attachment/`;
 
@@ -260,14 +261,18 @@ export class GetImporter {
             }
         }
 
-        // 5. Import Notes
         const syncedMemoIds = this.config["syncedMemoIds"] || [];
-        console.debug(`已有 ${syncedMemoIds.length} 条同步记录`);
+        legacyLog('import synced memo ids loaded', { count: syncedMemoIds.length });
 
         // 传递 Map 给 GetCore
         const flomo = new GetCore(notesData, syncedMemoIds, getTarget);
 
         const memos = await this.importMemos(flomo);
+        legacyLog('import markdown written', {
+            parsedNotes: flomo.memos.length,
+            newNotes: flomo.newMemosCount || 0,
+            markdownFiles: Object.keys(flomo.files || {}).length
+        });
 
         // 6. Ob Intergations
         // If Generate Moments
@@ -280,8 +285,8 @@ export class GetImporter {
             await generateCanvas(this.app, memos, this.config);
         }
 
-        // 7. Cleanup Workspace
         await fs.remove(tmpDir);
+        legacyLog('import cleanup complete');
 
         return flomo
 

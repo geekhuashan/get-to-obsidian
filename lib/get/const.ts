@@ -8,4 +8,8 @@ export const DOWNLOAD_FILE = GET_PLAYWRIGHT_CACHE_LOC + 'get_export.zip';
 
 // Get笔记 URLs
 export const GET_LOGIN_URL = 'https://www.biji.com/';
-export const GET_EXPORT_URL = 'https://www.biji.com/syncNote'; // 待确认实际导出页面URL
+export const GET_EXPORT_CANDIDATE_URLS = [
+    'https://www.biji.com/syncNote',
+    'https://www.biji.com/note',
+    'https://www.biji.com/'
+];

@@ -11,6 +11,7 @@ import * as os from 'os';
 import *  as fs from 'fs-extra';
 
 import { AUTH_FILE, DOWNLOAD_FILE } from '../get/const'
+import { toLegacyUserMessage } from '../get/legacy_errors';
 
 export class MainUI extends Modal {
 
@@ -47,7 +48,7 @@ export class MainUI extends Modal {
         } catch (err) {
             console.log(err);
             btn.setButtonText("Auto Sync 🤗");
-            new Notice(`Get笔记 同步错误. 详情:\n${err}`);
+            new Notice(toLegacyUserMessage(err));
         }
     }
 
@@ -83,7 +84,7 @@ export class MainUI extends Modal {
         } catch (err) {
             this.rawPath = "";
             console.log(err);
-            new Notice(`Get笔记 导入错误. 详情:\n${err}`);
+            new Notice(toLegacyUserMessage(err));
         }
 
     }
