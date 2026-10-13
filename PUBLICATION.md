@@ -1,14 +1,9 @@
-# Reviewed documentation snapshot
+# Reviewed application source
 
-This independent branch preserves the reviewed pending maintenance documentation for `get-to-obsidian` as of 2026-09-07. It is a selected-file snapshot to read or apply on top of the existing application source; it is not a standalone application or a replacement for the default branch.
+This branch contains the portable `get-to-obsidian` application source and maintenance documentation reviewed on 2026-10-13. It continues the existing reviewed documentation branch and includes the current TypeScript source, JavaScript modules, package lock, plugin metadata, styles, and build scripts.
 
-The default branch and its history remain unchanged. Relative application links refer to the existing project tree. No personal notes, original attachments, local authentication state, private indexes, or old Git history are included. Existing release documentation describes its original version; this branch does not create a release.
+Build with `npm ci` and `npm run build`. The generated `main.js` stays local; deploy it to a vault only after setting `VAULT_PATH` for that installation. Authentication state, downloaded notes, original attachments, private workspace notes, and release ZIP files are excluded. `AGENTS.md` is the maintained project instruction file.
 
-Included project paths:
+The source passes the existing TypeScript and esbuild production build. `npm run lint` currently cannot run because the project does not provide an ESLint configuration. Existing release documentation retains its original version; this branch does not create a new plugin release or deploy to Obsidian.
 
-- `AGENTS.md`
-- `CONTRIBUTING.md`
-- `blog-article.md`
-- `release/RELEASE_NOTES.md`
-- `release/manifest.json`
-- `release/styles.css`
+The default branch and its original history remain available separately. This branch publishes the reviewed source without importing that history.
