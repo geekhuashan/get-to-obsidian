@@ -6,4 +6,4 @@ Build with `npm ci` and `npm run build`. The generated `main.js` stays local; de
 
 The source passes the existing TypeScript and esbuild production build. `npm run lint` currently cannot run because the project does not provide an ESLint configuration. Existing release documentation retains its original version; this branch does not create a new plugin release or deploy to Obsidian.
 
-The default branch and its original history remain available separately. This branch publishes the reviewed source without importing that history.
+The reviewed source is prepared as the consolidated main candidate. Original historical snapshots are retained in a verified local archive; they are not imported into this source history.
