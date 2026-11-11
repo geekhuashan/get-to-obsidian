@@ -324,6 +324,6 @@ Key settings in `MyPluginSettings`:
 ## Plugin Metadata
 
 - **Version Source:** Check `manifest.json`, `package.json`, and `versions.json` when releasing; the first two both declare `2.0.0` as of 2026-09-04
-- **Minimum Obsidian Version:** 0.15.0
-- **Author:** Jason
+- **Minimum Obsidian Version:** `manifest.json` declares 1.5.0
+- **Author:** `manifest.json` declares Hua Shan; upstream provenance remains in the project documentation
 - **BRAT Support:** Yes (versions.json tracks compatibility)
